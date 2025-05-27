@@ -1,0 +1,88 @@
+﻿@model Kutip.Models.Truck
+
+@{
+    ViewData["Title"] = "Edit Truck";
+}
+
+<div class="container">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Truck")"><i class="fas fa-truck"></i> Trucks</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-pen"></i> Edit Truck</li>
+        </ol>
+    </nav>
+
+    <div class="page-inner">
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">
+                            Edit Truck Details
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Edit">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                            <input type="hidden" asp-for="TruckId" />
+
+                            <div class="mb-3">
+                                <label asp-for="TruckNo" class="form-label"></label>
+                                <input asp-for="TruckNo" class="form-control" placeholder="Enter Truck Number" />
+                                <span asp-validation-for="TruckNo" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Status" class="form-label"></label>
+                                <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TruckStatus>()">
+                                    <option value="">Select Status</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="DriverName" class="form-label"></label>
+                                <input asp-for="DriverName" class="form-control" placeholder="Enter Driver Name" />
+                                <span asp-validation-for="DriverName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Phone" class="form-label"></label>
+                                <input asp-for="Phone" class="form-control" placeholder="Enter Phone Number" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Company" class="form-label"></label>
+                                <input asp-for="Company" class="form-control" placeholder="Enter Company Name" />
+                                <span asp-validation-for="Company" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a asp-action="Index" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </a>
+                                <div>
+                                    <button type="reset" class="btn btn-outline-secondary btn-sm me-2">
+                                        <i class="fa fa-undo"></i> Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fa fa-save"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

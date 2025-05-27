@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Kutip.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kutip.Data
@@ -9,5 +10,9 @@ namespace Kutip.Data
             : base(options)
         {
         }
+
+        public DbSet<Truck> Trucks { get; set; }
+        public DbSet<Bin> Bin { get; set; }
+
     }
 }

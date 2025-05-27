@@ -1,0 +1,98 @@
+﻿@model IEnumerable<Kutip.Models.Truck>
+
+@{
+    ViewData["Title"] = "Trucks List";
+}
+
+
+<div class="container">
+
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-truck"></i> Truck List</li>
+        </ol>
+    </nav>
+
+    <div class="page-inner">
+
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Trucks List</h4>
+                        <a asp-action="Create" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i>  Create Truck
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>@Html.DisplayNameFor(model => model.TruckNo)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Status)</th>
+                                        <th>@Html.DisplayNameFor(model => model.DriverName)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Phone)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Company)</th>
+                                        <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@Html.DisplayFor(modelItem => item.TruckNo)</td>
+                                            <td>@Html.DisplayFor(modelItem => item.DriverName)</td>
+                                            <td>@Html.DisplayFor(modelItem => item.Phone)</td>
+                                            <td>@Html.DisplayFor(modelItem => item.Company)</td>
+                                            <td>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>
+                                                @{
+                                                    var status = item.Status.ToString();
+                                                    string badgeClass = status switch
+                                                    {
+                                                        "Active" => "badge bg-success",
+                                                        "Inactive" => "badge bg-danger",
+                                                        _ => "badge bg-secondary" // or bg-warning for other values
+                                                    };
+                                                }
+                                                <span class="@badgeClass">@status</span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="Edit" asp-route-id="@item.TruckId" class="btn btn-warning btn-sm" title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Details" asp-route-id="@item.TruckId" class="btn btn-info btn-sm" title="View Details">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.TruckId" class="btn btn-danger btn-sm" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function () {
+            $('#basic-datatables').DataTable({
+                responsive: true,
+                fixedHeader: true
+            });
+        });
+    </script>
+}

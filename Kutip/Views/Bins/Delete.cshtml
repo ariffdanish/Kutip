@@ -1,0 +1,92 @@
+﻿@model Kutip.Models.Bin
+
+@{
+    ViewData["Title"] = "Delete Bin";
+}
+
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Bin")">Bins</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Delete Bin</li>
+        </ol>
+    </nav>
+
+    <div class="page-inner">
+
+        <div class="page-header mb-3">
+            <h3 class="fw-bold"><i data-feather="trash-2" class="me-2"></i>@ViewData["Title"]</h3>
+        </div>
+
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <i data-feather="alert-triangle" class="me-2"></i>
+            <div>
+                <strong>Warning:</strong> You are about to permanently delete this bin record. This action <strong>cannot</strong> be undone.
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-semibold mb-3">
+                    <i data-feather="trash-2" class="me-1"></i> Bin Details
+                </h5>
+                <hr />
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.BinNo)</th>
+                            <td>@Html.DisplayFor(model => model.BinNo)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.Street)</th>
+                            <td>@Html.DisplayFor(model => model.Street)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.City)</th>
+                            <td>@Html.DisplayFor(model => model.City)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.State)</th>
+                            <td>@Html.DisplayFor(model => model.State)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.PostCode)</th>
+                            <td>@Html.DisplayFor(model => model.PostCode)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.Status)</th>
+                            <td>@Html.DisplayFor(model => model.Status)</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                            <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.UpdatedAt)</th>
+                            <td>@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="BinId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i data-feather="trash-2"></i> Confirm Delete
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">
+                        <i data-feather="arrow-left-circle"></i> Back to List
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        feather.replace();
+    </script>
+}

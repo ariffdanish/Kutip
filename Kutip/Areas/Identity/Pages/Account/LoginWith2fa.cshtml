@@ -1,0 +1,62 @@
+﻿@page
+@model LoginWith2faModel
+@{
+    ViewData["Title"] = "Two-Factor Authentication";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-3">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Two-Factor Authentication
+                    </h2>
+
+                    <p class="text-muted text-center mb-4">
+                        Your login is protected with an authenticator app. Please enter your authentication code.
+                    </p>
+
+                    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                        <input asp-for="RememberMe" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.TwoFactorCode" class="form-control" autocomplete="off" placeholder="123456" />
+                            <label asp-for="Input.TwoFactorCode">Authenticator Code</label>
+                            <span asp-validation-for="Input.TwoFactorCode" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input asp-for="Input.RememberMachine" class="form-check-input" />
+                            <label asp-for="Input.RememberMachine" class="form-check-label">
+                                @Html.DisplayNameFor(m => m.Input.RememberMachine)
+                            </label>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Log in
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mt-3 mb-0">
+                            <i class="bi bi-shield-exclamation me-1"></i>
+                            Lost access?
+                            <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">
+                                Log in with a recovery code
+                            </a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
