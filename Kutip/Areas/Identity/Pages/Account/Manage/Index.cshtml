@@ -5,22 +5,74 @@
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+
+<div class="text-center">
+    <h3 class="mb-0">@ViewData["Title"]</h3>
+    <partial name="_StatusMessage" for="StatusMessage" />
+</div>
+
+<br />
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <form id="profile-form" method="post" novalidate class="needs-validation">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <!-- Username (readonly) -->
+            <div class="form-floating mb-4">
+                <input asp-for="Username" class="form-control" readonly />
+                <label asp-for="Username"></label>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+
+            <!-- First and Last Name -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.FirstName" class="form-control" placeholder="First Name" />
+                        <label asp-for="Input.FirstName"></label>
+                        <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.LastName" class="form-control" placeholder="Last Name" />
+                        <label asp-for="Input.LastName"></label>
+                        <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+
+            <!-- Staff ID and Date of Birth -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.StaffId" class="form-control" placeholder="Staff ID" />
+                        <label asp-for="Input.StaffId"></label>
+                        <span asp-validation-for="Input.StaffId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.DateOfBirth" type="date" class="form-control" placeholder="Date of Birth" />
+                        <label asp-for="Input.DateOfBirth"></label>
+                        <span asp-validation-for="Input.DateOfBirth" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-floating mb-4">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone Number" />
+                <label asp-for="Input.PhoneNumber"></label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
+            </div>
+
+            <!-- Save Button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
         </form>
     </div>
 </div>

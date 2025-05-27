@@ -5,20 +5,35 @@
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<h3>@ViewData["Title"]</h3>
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
 
-<div class="row">
-    <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
-        <form id="download-data" asp-page="DownloadPersonalData" method="post">
-            <button class="btn btn-primary" type="submit">Download</button>
-        </form>
-        <p>
-            <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
+                <h3 class="card-title text-center mb-4">@ViewData["Title"]</h3>
+
+                <p class="text-muted">
+                    Your account contains personal data you have provided. You can choose to download a copy or delete the data entirely.
+                </p>
+
+                <div class="alert alert-warning" role="alert">
+                    <strong class="text-danger">Warning:</strong> Deleting your personal data will <strong>permanently remove your account</strong>. This action is irreversible.
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-3 mt-4">
+                    <form id="download-data" asp-page="DownloadPersonalData" method="post" class="w-100">
+                        <button class="btn btn-outline-primary w-100" type="submit">
+                            <i class="bi bi-download me-1"></i> Download Personal Data
+                        </button>
+                    </form>
+
+                    <a id="delete" asp-page="DeletePersonalData" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash-fill me-1"></i> Delete Personal Data
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
