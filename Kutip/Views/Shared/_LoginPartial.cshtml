@@ -2,15 +2,25 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+@{
+    string firstName = null;
+    if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        firstName = user?.FirstName ?? User.Identity?.Name;
+    }
+}
+
 <ul class="nav nav-secondary">
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">
-            <a asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+            <a asp-area="Identity" asp-page="/Account/Manage/Index" class="nav-link" title="Manage">
                 <i class="fas fa-user-circle"></i>
-                <span class="sub-item">Hello @User.Identity?.Name!</span>
+                <span class="sub-item">Hello @firstName!</span>
             </a>
         </li>
+
         <li class="nav-item">
             <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout"
                   asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
@@ -20,17 +30,19 @@
                 </button>
             </form>
         </li>
+
+        <br />
     }
     else
     {
         <li class="nav-item">
-            <a asp-area="Identity" asp-page="/Account/Register">
+            <a asp-area="Identity" asp-page="/Account/Register" class="nav-link">
                 <i class="fas fa-user-plus"></i>
                 <span class="sub-item">Register</span>
             </a>
         </li>
         <li class="nav-item">
-            <a asp-area="Identity" asp-page="/Account/Login">
+            <a asp-area="Identity" asp-page="/Account/Login" class="nav-link">
                 <i class="fas fa-sign-in-alt"></i>
                 <span class="sub-item">Login</span>
             </a>

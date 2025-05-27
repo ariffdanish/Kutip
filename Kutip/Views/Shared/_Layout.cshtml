@@ -69,6 +69,10 @@
                     <ul class="nav nav-secondary">
 
                         <li class="nav-item">
+                            <partial name="_LoginPartial" />
+                        </li>
+
+                        <li class="nav-item">
                             <a asp-controller="Home" asp-action="Index">
                                 <i class="fas fa-home"></i>
                                 <span class="sub-item">Dashboard</span>
@@ -90,17 +94,13 @@
                         </li>
 
                         <li class="nav-item">
-                            <a asp-controller="Schedules" asp-action="Index">
+                            <a asp-controller="Home" asp-action="Index">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span class="sub-item">Schedule</span>
                             </a>
                         </li>
 
-                        <li class="nav-item">
-                            <partial name="_LoginPartial" />
-                        </li>
-
-
+                   
                     </ul>
                 </div>
             </div>
