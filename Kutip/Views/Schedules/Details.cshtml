@@ -1,0 +1,71 @@
+﻿@model Kutip.Models.Schedule
+@{
+    ViewData["Title"] = "Schedule Details";
+}
+
+<div class="page-inner">
+    <div class="page-header">
+        <h4 class="page-title">Schedule Details</h4>
+        <ul class="breadcrumbs">
+            <li class="nav-home">
+                <a asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item"><a asp-controller="Schedules" asp-action="Index">Schedules</a></li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item">Schedule Details</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title fw-bold"><i class="fas fa-info-circle"></i> Schedule Information</h4>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.ScheduleId" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th><i class="fas fa-map-marker-alt"></i> Bin</th>
+                        <td>
+                            @(Model.Bin != null
+                                ? $"{Model.Bin.BinNo} - {Model.Bin.Street}, {Model.Bin.City}, {Model.Bin.State} {Model.Bin.PostCode}"
+                                : "N/A")
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><i class="fas fa-truck"></i> Truck</th>
+                        <td>
+                            @(Model.Truck != null
+                                ? $"{Model.Truck.TruckNo} - {Model.Truck.DriverName}"
+                                : "N/A")
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><i class="far fa-clock"></i> Scheduled Time</th>
+                        <td>@Model.ScheduledDateTime.ToString("f")</td>
+                    </tr>
+                    <tr>
+                        <th><i class="fas fa-tasks"></i> Status</th>
+                        <td>@Model.Status</td>
+                    </tr>
+                    <tr>
+                        <th><i class="fas fa-calendar-plus"></i> Created</th>
+                        <td>@Model.CreatedAt.ToString("f")</td>
+                    </tr>
+                    <tr>
+                        <th><i class="fas fa-calendar-alt"></i> Updated</th>
+                        <td>@Model.UpdatedAt.ToString("f")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

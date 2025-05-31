@@ -45,5 +45,7 @@ namespace Kutip.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+        public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
     }
 }

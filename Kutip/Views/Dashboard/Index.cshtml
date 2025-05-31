@@ -1,0 +1,389 @@
+﻿@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var cities = ViewBag.AllCities as List<string>;
+    //var statuses = ViewBag.AllStatuses as List<TruckStatus>;
+    var truckStatuses = ViewBag.AllTruckStatuses as List<TruckStatus>;
+    var truckNos = ViewBag.AllTruckNos as List<string>;
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@*Template*@
+<div class="container">
+    <div class="page-inner">
+        
+        <div class="row">
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-primary bubble-shadow-small">
+                                    <i class="fas fa-trash"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Total Bins</p>
+                                    <h4 class="card-title">@Model.TotalBins</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-info bubble-shadow-small">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Total Trucks</p>
+                                    <h4 class="card-title">@Model.TotalTrucks</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                    <i class="fas fa-wrench"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Trucks in Maintenance</p>
+                                    <h4 class="card-title">@Model.TrucksUnderMaintenance</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-secondary bubble-shadow-small">
+                                    <i class="far fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Order</p>
+                                    <h4 class="card-title">576</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card card-round">
+                    <div class="card-header">
+                        <div class="card-head-row">
+                            <div class="card-title">User Statistics</div>
+                            <div class="card-tools">
+                                <a href="#"
+                                   class="btn btn-label-success btn-round btn-sm me-2">
+                                    <span class="btn-label">
+                                        <i class="fa fa-pencil"></i>
+                                    </span>
+                                    Export
+                                </a>
+                                <a href="#" class="btn btn-label-info btn-round btn-sm">
+                                    <span class="btn-label">
+                                        <i class="fa fa-print"></i>
+                                    </span>
+                                    Print
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="min-height: 375px">
+                            <canvas id="statisticsChart"></canvas>
+                        </div>
+                        <div id="myChartLegend"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-primary card-round">
+                    <div class="card-header">
+                        <div class="card-head-row">
+                            <div class="card-title">Daily Sales</div>
+                            <div class="card-tools">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-label-light dropdown-toggle"
+                                            type="button"
+                                            id="dropdownMenuButton"
+                                            data-bs-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        Export
+                                    </button>
+                                    <div class="dropdown-menu"
+                                         aria-labelledby="dropdownMenuButton">
+                                        <a class="dropdown-item" href="#">Action</a>
+                                        <a class="dropdown-item" href="#">Another action</a>
+                                        <a class="dropdown-item" href="#">Something else here</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-category">March 25 - April 02</div>
+                    </div>
+                    <div class="card-body pb-0">
+                        <div class="mb-4 mt-2">
+                            <h1>$4,578.58</h1>
+                        </div>
+                        <div class="pull-in">
+                            <canvas id="dailySalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card card-round">
+                    <div class="card-body pb-0">
+                        <div class="h1 fw-bold float-end text-primary"></div>  
+                        <h2 class="mb-2">17</h2>
+                        <p class="text-muted">Today Pickup</p>
+                        <div class="pull-in sparkline-fix">
+                            <div id="lineChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-round">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <h4 class="card-title">Trucks and Bins Tracking</h4>
+                            <div class="card-tools">
+                                <button class="btn btn-icon btn-link btn-primary btn-xs">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <button class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card">
+                                    <span class="fa fa-sync-alt"></span>
+                                </button>
+                                <button class="btn btn-icon btn-link btn-primary btn-xs">
+                                    <span class="fa fa-times"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="card-category">
+                            Map of the distribution of bins
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="table-responsive table-hover table-sales">
+                                    <table class="table">
+                                        <tbody>
+                                        <thead>
+                                            <tr>
+                                                <th>Bin Number</th>
+                                                <th>Location</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                @foreach (var bin in Model.Bins)
+                                                {
+                                                <tr>
+                                                    <td>@bin.BinNo</td>
+                                                    <td>@($"{bin.Street}, {bin.PostCode}, {bin.City}, {bin.State}")</td>
+                                                    <td>
+                                                        <span class="badge bg-@(
+                                                    bin.Status == BinStatus.Active ? "success" :
+                                                    bin.Status == BinStatus.Inactive ? "secondary" :
+                                                    "warning")">
+                                                                @bin.Status
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Map Section -->
+                            <div class="col-md-6">
+                                <div class="mapcontainer">
+                                    <div id="bin-map"
+                                         class="w-100"
+                                         style="height: 300px"></div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-round">
+                    <div class="card-body">
+                        <div class="card-head-row card-tools-still-right">
+                            <div class="card-title">Trucks</div>
+                            <div class="card-tools">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon btn-clean me-0"
+                                            type="button"
+                                            id="dropdownMenuButton"
+                                            data-bs-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <div class="dropdown-menu"
+                                         aria-labelledby="dropdownMenuButton">
+                                        <a class="dropdown-item" href="#">Action</a>
+                                        <a class="dropdown-item" href="#">Another action</a>
+                                        <a class="dropdown-item" href="#">Something else here</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-list py-4">
+                            @foreach (var truck in Model.Trucks)
+                            {
+                                <div class="item-list">
+                                    <div class="avatar">
+                                        <span class="avatar-title rounded-circle border border-white bg-primary">
+                                            @truck.TruckNo.Substring(0, 1)
+                                        </span>
+                                    </div>
+                                    <div class="info-user ms-3">
+                                        <div class="username">Number Plate : @truck.TruckNo</div>
+                                        <div class="status">Driver : @truck.DriverName</div>
+                                    </div>
+                                    <button class="btn btn-icon btn-link op-8 me-1">
+                                        <i class="far fa-envelope"></i>
+                                    </button>
+                                    <button class="btn btn-icon btn-link btn-danger op-8">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card card-round">
+                    <div class="card-header">
+                        <div class="card-head-row card-tools-still-right">
+                            <div class="card-title">Recent Pickup History</div>
+                            <div class="card-tools">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon btn-clean me-0"
+                                            type="button"
+                                            id="dropdownMenuButton"
+                                            data-bs-toggle="dropdown"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <div class="dropdown-menu"
+                                         aria-labelledby="dropdownMenuButton">
+                                        <a class="dropdown-item" href="#">Action</a>
+                                        <a class="dropdown-item" href="#">Another action</a>
+                                        <a class="dropdown-item" href="#">Something else here</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <!-- Projects table -->
+                            <table class="table align-items-center mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Bins Number</th>
+                                        <th scope="col" class="text-end">Status</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (ViewBag.BinsCompleted != null)
+                                    {
+                                        foreach (var bin in ViewBag.BinsCompleted as List<Kutip.Models.Bin>)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <button class="btn btn-icon btn-round btn-default btn-sm me-2">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    @bin.BinNo
+                                                </td>
+                                                <td class="text-end">
+                                                    @{
+                                                        var schedule = ViewBag.ScheduleLookup.ContainsKey(bin.BinId) ? ViewBag.ScheduleLookup[bin.BinId] as Kutip.Models.Schedule : null;
+                                                        var scheduleStatus = schedule != null ? schedule.Status.ToString() : "No Schedule";
+                                                        var badgeClass = schedule != null && schedule.Status == Kutip.Models.ScheduleStatus.Completed ? "badge-success" : "badge-warning";
+                                                    }
+                                                    <span class="badge @badgeClass">
+                                                        @scheduleStatus
+                                                    </span>
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="2" class="text-center">No bins with completed schedule found.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*Template*@
+
+<script src="~/assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
+<script src="~/assets/js/plugin/jsvectormap/world.js"></script>
+@section Scripts {
+    <script>
+        // Initialize the map and set its view to UTM, Johor
+        var map = L.map('bin-map').setView([1.5594, 103.6371], 15); // UTM coordinates
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    </script>
+}
+
+
+
+
+

@@ -1,0 +1,90 @@
+﻿@model Kutip.Models.Schedule
+@{
+    ViewData["Title"] = "Delete Schedule";
+}
+
+<div class="page-inner">
+    <div class="page-header">
+        <h4 class="page-title">Delete Schedule</h4>
+        <ul class="breadcrumbs">
+            <li class="nav-home">
+                <a asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item"><a asp-controller="Schedules" asp-action="Index">Schedules</a></li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item">Delete Schedule</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-warning shadow-sm mt-3">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong> Warning:</strong> You are about to permanently delete this schedule record.
+        <br>This action <strong>cannot</strong> be undone.
+    </div>
+
+    <div class="card card-round mt-4">
+        <div class="card-header">
+            <h4 class="card-title"><i class="fas fa-calendar-times text-danger"></i> Schedule Details</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <tr>
+                    <th>Bin</th>
+                    <td>
+                        @(Model.Bin != null
+                            ? $"{Model.Bin.BinNo} - {Model.Bin.Street}, {Model.Bin.City}, {Model.Bin.State} {Model.Bin.PostCode}"
+                            : "N/A")
+                    </td>
+                </tr>
+                <tr>
+                    <th>Truck</th>
+                    <td>
+                        @(Model.Truck != null
+                            ? $"{Model.Truck.TruckNo} - {Model.Truck.DriverName}"
+                            : "N/A")
+                    </td>
+                </tr>
+                <tr>
+                    <th>Scheduled Time</th>
+                    <td>@Model.ScheduledDateTime.ToString("f")</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>@Model.Status</td>
+                </tr>
+            </table>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                    <i class="fas fa-trash-alt"></i> Confirm Delete
+                </button>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Confirm Deletion -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="fas fa-exclamation-circle"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete this schedule? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <form asp-action="DeleteConfirmed" method="post">
+                    <input type="hidden" asp-for="ScheduleId" />
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

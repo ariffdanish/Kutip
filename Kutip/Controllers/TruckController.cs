@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
-namespace KutipSmart.Controllers
+namespace Kutip.Controllers
 {
     [Authorize]
     public class TruckController : Controller

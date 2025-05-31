@@ -3,16 +3,16 @@
 
 @{
     ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
+<div class="account-container">
+        <div class="account-box">
             <div class="card shadow">
                 <div class="card-body p-4">
                     <h2 class="card-title mb-4 text-center"><i class="bi bi-box-arrow-in-right me-2"></i>Log in</h2>
                     <form id="account" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        @Html.AntiForgeryToken()
 
                         <div class="form-floating mb-3">
                             <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
@@ -65,9 +65,12 @@
                 </div>
             }
         </div>
-    </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+
+
+

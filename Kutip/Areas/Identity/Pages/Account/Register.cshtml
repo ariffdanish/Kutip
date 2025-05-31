@@ -2,11 +2,11 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
+<div class="account-container">
+        <div class="account-box">
             <div class="card shadow">
                 <div class="card-body p-4">
                     <h2 class="card-title mb-4 text-center">
@@ -65,7 +65,6 @@
                 </div>
             }
         </div>
-    </div>
 </div>
 
 @section Scripts {

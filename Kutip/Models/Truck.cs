@@ -43,6 +43,8 @@ namespace Kutip.Models
         public DateTimeOffset CreatedAt { get; set; } = DateTime.Now;
         public DateTimeOffset UpdatedAt { get; set; } = DateTime.Now;
 
+        public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
 
     }
 

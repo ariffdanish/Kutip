@@ -1,0 +1,77 @@
+﻿@model Kutip.Models.Schedule
+
+@{
+    ViewData["Title"] = "Create Schedule";
+}
+
+
+<div class="page-inner">
+    <div class="page-header">
+        <h4 class="page-title">Create Schedule</h4>
+        <ul class="breadcrumbs">
+            <li class="nav-home">
+                <a asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item"><a asp-controller="Schedules" asp-action="Index">Schedules</a></li>
+            <li class="separator"><i class="fas fa-chevron-right"></i></li>
+            <li class="nav-item">Create Schedule</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title fw-bold">Create New Schedule</div>
+            <p class="text-muted">Enter schedule details below</p>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group">
+                    <label asp-for="BinId" class="form-label">Select Bin</label>
+                    <select asp-for="BinId" class="form-control" asp-items="ViewBag.BinId">
+                        <option value="">-- Select Bin --</option>
+                    </select>
+
+                    <span asp-validation-for="BinId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="TruckId" class="form-label">Assign Truck</label>
+                    <select asp-for="TruckId" class="form-control" asp-items="ViewBag.TruckId">
+                        <option value="">-- Select Truck --</option>
+                    </select>
+                    <span asp-validation-for="TruckId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
+                    <input asp-for="ScheduledDateTime" class="form-control" type="datetime-local" value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Status" class="form-label">Schedule Status</label>
+                    <select asp-for="Status" class="form-control" asp-items="ViewBag.Status">
+                        <option value="">-- Select Status --</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+
+                <div class="form-group mt-4 d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+                    <div>
+                        <button type="reset" class="btn btn-outline-primary">Reset</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

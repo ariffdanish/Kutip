@@ -26,7 +26,8 @@
                         <p class="card-category text-muted mb-0">Enter truck details below</p>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Create" novalidate>
+                        <form asp-action="Create" method="post" novalidate>
+                            @Html.AntiForgeryToken()
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                             <div class="mb-3">
