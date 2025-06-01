@@ -1,13 +1,11 @@
-﻿using Kutip.Data;
-using Kutip.Models;
+﻿using Kutip.Models;
+using Kutip.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Kutip.Controllers
 {
-    [Authorize]
     public class TruckController : Controller
     {
         private readonly ApplicationDbContext _context;
