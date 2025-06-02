@@ -7,7 +7,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
-
 namespace Kutip.Controllers
 {
     [Authorize]

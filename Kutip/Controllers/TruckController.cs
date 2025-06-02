@@ -2,10 +2,12 @@
 using Kutip.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace Kutip.Controllers
 {
+    [Authorize]
     public class TruckController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -15,11 +17,33 @@ namespace Kutip.Controllers
             _context = context;
         }
 
-        // GET: Truck
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var trucks = await _context.Trucks.ToListAsync();
+            List<Truck> trucks = _context.Trucks.ToList();
             return View(trucks);
+        }
+
+        // GET: Truck/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Truck/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(Truck truck)
+        {
+            if (ModelState.IsValid)
+            {
+                truck.CreatedAt = DateTimeOffset.UtcNow;
+                truck.UpdatedAt = DateTimeOffset.UtcNow;
+
+                _context.Trucks.Add(truck);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(truck);
         }
 
         // GET: Truck/Details/5
@@ -33,28 +57,6 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
-        // GET: Truck/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Truck/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Truck truck)
-        {
-            if (ModelState.IsValid)
-            {
-                truck.CreatedAt = DateTimeOffset.UtcNow;
-                truck.UpdatedAt = DateTimeOffset.UtcNow;
-
-                _context.Trucks.Add(truck);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(truck);
-        }
 
         // GET: Truck/Edit/5
         public async Task<IActionResult> Edit(int? id)

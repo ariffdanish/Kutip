@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kutip.Models
@@ -12,8 +11,6 @@ namespace Kutip.Models
 
         [Display(Name = "Truck No")]
         [Required]
-        //[StringValidator(InvalidCharacters = "~!@#$%^&*()_+`-={}|[]:;\"'<>,.?/\\")]
-        [Remote(action: "IsTruckNoAvailable", controller: "Trucks", AdditionalFields = "TruckId", ErrorMessage = "Truck number already exists.")]
         [RegularExpression(@"^[A-Z0-9]+$", ErrorMessage = "Truck number must be alphanumeric.")]
         [StringLength(13)]
         public string TruckNo { get; set; }
@@ -41,6 +38,7 @@ namespace Kutip.Models
 
         [Display(Name ="Created")]
         public DateTimeOffset CreatedAt { get; set; } = DateTime.Now;
+        [Display(Name = "Updated")]
         public DateTimeOffset UpdatedAt { get; set; } = DateTime.Now;
 
         public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();

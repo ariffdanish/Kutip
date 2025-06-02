@@ -15,5 +15,6 @@ namespace Kutip.Data
         public DbSet<Bin> Bin { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
 
+
     }
 }
