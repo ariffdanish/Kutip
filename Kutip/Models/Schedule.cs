@@ -18,18 +18,18 @@ namespace Kutip.Models
         public int TruckId { get; set; }
 
         [Required]
-        [Display(Name = "Scheduled Date & Time")]
+        [Display(Name = "Date")]
         public DateTime ScheduledDateTime { get; set; }
 
         [Required]
-        [Display(Name = "Schedule Status")]
+        [Display(Name = "Status")]
         [EnumDataType(typeof(ScheduleStatus))]
         public ScheduleStatus Status { get; set; } = ScheduleStatus.Scheduled;
 
-        [Display(Name = "Created At")]
+        [Display(Name = "Created")]
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
 
-        [Display(Name = "Updated At")]
+        [Display(Name = "Updated")]
         public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
 
         // Navigation Properties

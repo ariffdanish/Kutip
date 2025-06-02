@@ -4,33 +4,35 @@
     ViewData["Title"] = "Delete Truck";
 }
 
-<div class="container">
+<div class="container py-4">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="my-3">
+    <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Home</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Truck")"><i class="fas fa-truck"></i> Trucks</a></li>
+            <li class="breadcrumb-item"> <a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Truck" asp-action="Index"><i class="fas fa-truck"></i> Trucks</a></li>
             <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-trash-alt"></i> Delete Truck</li>
         </ol>
     </nav>
 
     <div class="page-inner">
 
-        <div class="alert alert-warning d-flex align-items-center" role="alert">
-            <i class="fas fa-exclamation-triangle"></i>
+        <!-- Warning Alert -->
+        <div class="alert alert-warning d-flex align-items-center shadow-sm" role="alert">
             <div>
-                <strong> Warning:</strong> You are about to permanently delete this truck record. This action <strong>cannot</strong> be undone.
+                <strong>Warning:</strong> You are about to permanently delete this truck record.
+                This action <strong>cannot</strong> be undone.
             </div>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <!-- Truck Details Card -->
+        <div class="card shadow">
             <div class="card-body">
-                <h5 style="text-align">
-                    <i class="fas fa-truck"></i> Truck Details
+                <h5 class="card-title fw-semibold mb-3">
+                    Truck Details
                 </h5>
-                <hr />
-                <div class="card shadow">
-                    <table class="table table-bordered table-striped">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
                         <tbody>
                             <tr>
                                 <th>@Html.DisplayNameFor(model => model.TruckNo)</th>
@@ -60,17 +62,37 @@
                     </table>
                 </div>
 
-                <form asp-action="Delete">
+                <!-- Modal Trigger -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                        <i class="fas fa-trash-alt"></i> Confirm Delete
+                    </button>
+                    <a asp-action="Index" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Deletion Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete this truck? This action <strong>cannot</strong> be undone.
+            </div>
+            <div class="modal-footer">
+                <form asp-action="Delete" method="post" class="m-0 p-0">
                     <input type="hidden" asp-for="TruckId" />
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash-alt"></i>  Delete
-                        </button>
-                        <a asp-action="Index" class="btn btn-primary btn-sm">
-                            <i class="fas fa-arrow-left"></i>  Back
-                        </a>
-                    </div>
+                    <button type="submit" class="btn btn-danger btn-sm">Yes, Delete</button>
                 </form>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>

@@ -1,122 +1,130 @@
 ﻿@model IEnumerable<Kutip.Models.Schedule>
 @using Kutip.Models
+
 @{
     ViewData["Title"] = "Schedules List";
 }
 
-<div class="page-inner">
-    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-        <div>
-            <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
-        </div>
-        <div class="ms-md-auto py-2 py-md-0">
-            <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Create Schedule</a>
+<div class="container">
+
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-calendar-alt"></i> Schedule List</li>
+        </ol>
+    </nav>
+
+    <div class="page-inner">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow">
+                    <div class="card-header text-center">
+                        <h4 class="card-title mb-0">Weekly Summary</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Total Scheduled</th>
+                                        <th>Bins Collected</th>
+                                        <th>Missed Pickups</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold">@Model.Count()</td>
+                                        <td class="text-success fw-semibold">@Model.Count(s => s.Status == ScheduleStatus.Completed)</td>
+                                        <td class="text-danger fw-semibold">@Model.Count(s => s.Status == ScheduleStatus.Missed)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <a asp-action="AutoSchedule" class="btn btn-outline-info btn-sm">
-        <i class="fas fa-magic"></i> Auto Schedule
-    </a>
 
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">📅 Schedule List</div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="scheduleTable" class="display table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>BIN</th>
-                            <th>STREET</th>
-                            <th>TRUCK</th>
-                            <th>SCHEDULED TIME</th>
-                            <th>STATUS</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>
-                                    @item.Bin.BinNo
-                                </td>
+    <div class="page-inner">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Schedules List</h4>
+                        <div>
+                            <a asp-action="AutoSchedule" class="btn btn-outline-info btn-sm me-2">
+                                <i class="fas fa-magic"></i> Auto Schedule
+                            </a>
+                            <a asp-action="Create" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Create Schedule
+                            </a>
+                        </div>
+                    </div>
 
-                                <td>@item.Bin.Street</td>
-
-                                <td>
-                                    @if (item.Truck != null)
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>@Html.DisplayNameFor(model => model.Bin.BinNo)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Bin.Street)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Truck.TruckNo)</th>
+                                        <th>@Html.DisplayNameFor(model => model.ScheduledDateTime)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Status)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
                                     {
-                                        @item.Truck.TruckNo
-                                        if (!string.IsNullOrWhiteSpace(item.Truck.DriverName))
-                                        {
-                                            <text> - @item.Truck.DriverName</text>
-                                        }
+                                        <tr>
+                                            <td>@item.Bin.BinNo</td>
+                                            <td>@item.Bin.Street</td>
+                                            <td>@item.Truck.TruckNo</td>
+                                            <td>@item.ScheduledDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>
+                                                @{
+                                                    var statusClass = item.Status switch
+                                                    {
+                                                        ScheduleStatus.Completed => "badge bg-success",
+                                                        ScheduleStatus.Missed => "badge bg-danger",
+                                                        ScheduleStatus.Reassigned => "badge bg-info",
+                                                        _ => "badge bg-warning"
+                                                    };
+                                                }
+                                                <span class="@statusClass">@item.Status</span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="Edit" asp-route-id="@item.ScheduleId" class="btn btn-warning btn-sm" title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Details" asp-route-id="@item.ScheduleId" class="btn btn-info btn-sm" title="Details">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.ScheduleId" class="btn btn-danger btn-sm" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
                                     }
-                                    else
-                                    {
-                                        <span class="text-muted">N/A</span>
-                                    }
-                                </td>
-
-                                <td>@item.ScheduledDateTime.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td>
-                                    <span class="badge
-                                        @(item.Status == ScheduleStatus.Completed ? "bg-success" :
-                                          item.Status == ScheduleStatus.Missed ? "bg-danger" :
-                                          item.Status == ScheduleStatus.Reassigned ? "bg-info" : "bg-warning")">
-                                        @item.Status
-                                    </span>
-                                </td>
-                                <td>
-                                    <a asp-action="Edit" asp-route-id="@item.ScheduleId" class="btn btn-warning btn-sm" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a asp-action="Details" asp-route-id="@item.ScheduleId" class="btn btn-info btn-sm" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.ScheduleId" class="btn btn-danger btn-sm" title="Delete">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-4">
-                <h5><i class="fas fa-chart-line"></i> Weekly Summary</h5>
-                <ul>
-                    <li><strong>Total Scheduled:</strong> @Model.Count()</li>
-                    <li><strong>Bins Collected:</strong> @Model.Count(s => s.Status == ScheduleStatus.Completed)</li>
-                    <li><strong>Missed Pickups:</strong> @Model.Count(s => s.Status == ScheduleStatus.Missed)</li>
-                </ul>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- DataTables Core -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <!-- Optional: Bootstrap integration if you're using Bootstrap 4 -->
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-
     <script>
         $(document).ready(function () {
-            $('#scheduleTable').DataTable({
-                order: [[2, "asc"]],
-                language: {
-                    search: "🔍 Filter records:",
-                    paginate: {
-                        previous: "<i class='fas fa-angle-left'> Previous </i>",
-                        next: "<i class='fas fa-angle-right'> Next </i>"
-                    }
-                },
-                pagingType: "simple_numbers"
+            $('#basic-datatables').DataTable({
+                responsive: true,
+                fixedHeader: true
             });
         });
     </script>
 }
-

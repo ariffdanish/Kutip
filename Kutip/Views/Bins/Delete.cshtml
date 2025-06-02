@@ -4,81 +4,102 @@
     ViewData["Title"] = "Delete Bin";
 }
 
-<div class="container">
+<div class="container py-4">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
+    <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Bin")">Bins</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Delete Bin</li>
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Bins" asp-action="Index"><i class="fas fa-trash"></i> Bins</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-trash"></i> Delete Bin</li>
         </ol>
     </nav>
 
     <div class="page-inner">
 
-        <div class="page-header mb-3">
-            <h3 class="fw-bold"><i data-feather="trash-2" class="me-2"></i>@ViewData["Title"]</h3>
-        </div>
-
-        <div class="alert alert-warning d-flex align-items-center" role="alert">
-            <i data-feather="alert-triangle" class="me-2"></i>
+        <!-- Warning Alert -->
+        <div class="alert alert-warning d-flex align-items-center shadow-sm" role="alert">
             <div>
                 <strong>Warning:</strong> You are about to permanently delete this bin record. This action <strong>cannot</strong> be undone.
             </div>
         </div>
 
+        <!-- Bin Details Card -->
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="card-title fw-semibold mb-3">
                     <i data-feather="trash-2" class="me-1"></i> Bin Details
                 </h5>
-                <hr />
-                <table class="table table-bordered table-striped">
-                    <tbody>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.BinNo)</th>
-                            <td>@Html.DisplayFor(model => model.BinNo)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.Street)</th>
-                            <td>@Html.DisplayFor(model => model.Street)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.City)</th>
-                            <td>@Html.DisplayFor(model => model.City)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.State)</th>
-                            <td>@Html.DisplayFor(model => model.State)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.PostCode)</th>
-                            <td>@Html.DisplayFor(model => model.PostCode)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.Status)</th>
-                            <td>@Html.DisplayFor(model => model.Status)</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
-                            <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        </tr>
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.UpdatedAt)</th>
-                            <td>@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        </tr>
-                    </tbody>
-                </table>
 
-                <form asp-action="Delete" method="post">
-                    <input type="hidden" asp-for="BinId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i data-feather="trash-2"></i> Confirm Delete
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <tbody>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.BinNo)</th>
+                                <td>@Html.DisplayFor(model => model.BinNo)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.Street)</th>
+                                <td>@Html.DisplayFor(model => model.Street)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.City)</th>
+                                <td>@Html.DisplayFor(model => model.City)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.State)</th>
+                                <td>@Html.DisplayFor(model => model.State)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.PostCode)</th>
+                                <td>@Html.DisplayFor(model => model.PostCode)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.Status)</th>
+                                <td>@Html.DisplayFor(model => model.Status)</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                                <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.UpdatedAt)</th>
+                                <td>@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Trigger Modal Button -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                        <i class="fas fa-trash"></i> Confirm Delete
                     </button>
-                    <a asp-action="Index" class="btn btn-secondary ms-2">
-                        <i data-feather="arrow-left-circle"></i> Back to List
+                    <a asp-action="Index" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to List
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Confirm Deletion -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete this bin? This action <strong>cannot</strong> be undone.
+            </div>
+            <div class="modal-footer">
+                <form asp-action="Delete" method="post" class="m-0 p-0">
+                    <input type="hidden" asp-for="BinId" />
+                    <button type="submit" class="btn btn-danger btn-sm">Yes, Delete</button>
                 </form>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -86,7 +107,5 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-    <script>
-        feather.replace();
-    </script>
+    
 }
