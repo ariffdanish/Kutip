@@ -38,16 +38,22 @@
 </head>
 <body>
     <div class="wrapper">
+        @using Microsoft.AspNetCore.Identity
+        @inject UserManager<ApplicationUser> UserManager
+
+        @{
+            var user = await UserManager.GetUserAsync(User);
+            var roles = user == null ? new List<string>() : await UserManager.GetRolesAsync(user);
+            bool isAdmin = roles.Contains("Admin");
+            bool isTruckDriver = roles.Contains("TruckDriver");
+        }
+
         <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
-                <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a asp-controller="Home" asp-action="Index" class="logo">
-                        <img src="~/assets/img/kaiadmin/logo_light.svg"
-                             alt="navbar brand"
-                             class="navbar-brand"
-                             height="20" />
+                        <img src="~/assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -61,45 +67,85 @@
                         <i class="gg-more-vertical-alt"></i>
                     </button>
                 </div>
-                <!-- End Logo Header -->
             </div>
 
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
 
-                        <li class="nav-item">
-                            <a asp-controller="Dashboard" asp-action="Index">
-                                <i class="fas fa-home"></i>
-                                <span class="sub-item">Dashboard</span>
-                            </a>
-                        </li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Dashboard" asp-action="Index">
+                                    <i class="fas fa-home"></i>
+                                    <span class="sub-item">Dashboard</span>
+                                </a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a asp-controller="Bins" asp-action="Index">
-                                <i class="fas fa-trash"></i>
-                                <span class="sub-item">Bin Management</span>
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a asp-controller="Bins" asp-action="Index">
+                                    <i class="fas fa-trash"></i>
+                                    <span class="sub-item">Bin Management</span>
+                                </a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a asp-controller="Truck" asp-action="Index">
-                                <i class="fas fa-truck"></i>
-                                <span class="sub-item">Truck Management</span>
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a asp-controller="Truck" asp-action="Index">
+                                    <i class="fas fa-truck"></i>
+                                    <span class="sub-item">Truck Management</span>
+                                </a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a asp-controller="Schedules" asp-action="Index">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span class="sub-item">Schedules</span>
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a asp-controller="Schedules" asp-action="Index">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span class="sub-item">Schedules</span>
+                                </a>
+                            </li>
+
+                            <!-- Add more Admin-only menu items here -->
+                        }
+                        else if (isTruckDriver)
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home"></i>
+                                    <span class="sub-item">Home</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-controller="Bins" asp-action="Index">
+                                    <i class="fas fa-trash"></i>
+                                    <span class="sub-item">Bins</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-controller="Schedules" asp-action="Index">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span class="sub-item">Schedules</span>
+                                </a>
+                            </li>
+
+                            <!-- No Truck Management or other admin items here -->
+                        }
+                        else
+                        {
+                            <!-- Optional: For users with no recognized roles -->
+                            <li class="nav-item">
+                                <a asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home"></i>
+                                    <span class="sub-item">Home</span>
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </div>
         <!-- End Sidebar -->
+
 
         <div class="main-panel">
             <div class="main-header">

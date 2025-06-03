@@ -11,25 +11,26 @@ namespace Kutip.Controllers
     public class BinsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        
+
         public BinsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        [Authorize(Roles = "Admin,TruckDriver")]
         public IActionResult Index()
         {
             List<Bin> bins = _context.Bin.ToList();
             return View(bins);
         }
 
-        // GET: Bin/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Bin/Create
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Bin bin)
@@ -45,6 +46,7 @@ namespace Kutip.Controllers
             return View(bin);
         }
 
+        [Authorize(Roles = "Admin,TruckDriver")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -58,7 +60,7 @@ namespace Kutip.Controllers
             return View(bin);
         }
 
-        // GET: Bin/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -71,7 +73,7 @@ namespace Kutip.Controllers
             return View(bin);
         }
 
-        // POST: Bin/Edit/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Bin bin)
@@ -103,23 +105,20 @@ namespace Kutip.Controllers
             return _context.Bin.Any(e => e.BinId == id);
         }
 
-        // Controller: BinController.cs
-
-        // GET: Bin/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
                 return NotFound();
 
-            var bin = await _context.Bin
-                .FirstOrDefaultAsync(m => m.BinId == id);
+            var bin = await _context.Bin.FirstOrDefaultAsync(m => m.BinId == id);
             if (bin == null)
                 return NotFound();
 
             return View(bin);
         }
 
-        // POST: Bin/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -132,12 +131,6 @@ namespace Kutip.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
-
-
-
-
-
-
-
     }
+
 }

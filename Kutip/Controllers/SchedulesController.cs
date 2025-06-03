@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Kutip.Controllers
 {
-    [Authorize]
+    [Authorize] // all actions require authentication
     public class SchedulesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,6 +21,7 @@ namespace Kutip.Controllers
         }
 
         // GET: Schedules
+        [Authorize(Roles = "Admin,TruckDriver")]
         public async Task<IActionResult> Index()
         {
             var schedules = await _context.Schedules
@@ -32,6 +33,7 @@ namespace Kutip.Controllers
         }
 
         // GET: Schedules/Details/5
+        [Authorize(Roles = "Admin,TruckDriver")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -47,19 +49,17 @@ namespace Kutip.Controllers
         }
 
         // GET: Schedules/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
-            return View(new Schedule()); // send non-null model!
+            return View(new Schedule());
         }
 
-
-
-
-
         // POST: Schedules/Create
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Schedule schedule)
@@ -73,15 +73,14 @@ namespace Kutip.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Repopulate dropdowns on failed validation
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             return View(schedule);
         }
 
-
         // GET: Schedules/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -96,6 +95,7 @@ namespace Kutip.Controllers
         }
 
         // POST: Schedules/Edit/5
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Schedule schedule)
@@ -117,8 +117,8 @@ namespace Kutip.Controllers
             return View(schedule);
         }
 
-
         // GET: Schedules/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -134,6 +134,7 @@ namespace Kutip.Controllers
         }
 
         // POST: Schedules/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -147,10 +148,9 @@ namespace Kutip.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-    
-
 
         // POST: Schedules/AutoSchedule
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AutoSchedule()
         {
