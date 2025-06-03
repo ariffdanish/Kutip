@@ -21,14 +21,15 @@
         </li>
 
         <li class="nav-item">
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout"
-                  asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                <button type="submit" class="nav-link btn text-start text-light w-100" style="background: none; border: none;">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="sub-item">Logout</span>
-                </button>
-            </form>
-        </li>
+    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout"
+          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+        <button type="submit" class="nav-link btn text-start text-white w-100" style="background-color: black; border: none;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="sub-item">Logout</span>
+        </button>
+    </form>
+</li>
+
 
     }
     else
