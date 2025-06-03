@@ -1,24 +1,44 @@
 ﻿@page
 @model RegisterConfirmationModel
 @{
-    ViewData["Title"] = "Register confirmation";
+    ViewData["Title"] = "Register Confirmation";
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<h1>@ViewData["Title"]</h1>
-@{
-    if (@Model.DisplayConfirmAccountLink)
-    {
-<p>
-    This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
-    Normally this would be emailed: <a id="confirm-link" href="@Model.EmailConfirmationUrl">Click here to confirm your account</a>
-</p>
-    }
-    else
-    {
-<p>
-        Please check your email to confirm your account.
-</p>
-    }
-}
+<div class="account-container">
+    <div class="account-box">
+        <div class="card shadow">
+            <div class="card-body p-4 text-center">
+                <h2 class="card-title mb-4">
+                    <i class="bi bi-check-circle-fill me-2"></i>@ViewData["Title"]
+                </h2>
 
+                @if (Model.DisplayConfirmAccountLink)
+                {
+                    <p class="mb-3">
+                        This app does not currently have a real email sender registered.
+                        See <a href="https://aka.ms/aspaccountconf" target="_blank">these docs</a> for how to configure a real email sender.
+                    </p>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Confirm your account:</strong>
+                        <a id="confirm-link" class="text-decoration-none fw-semibold" href="@Model.EmailConfirmationUrl">
+                            Click here to confirm your account
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <p class="alert alert-success">
+                        Please check your email to confirm your account.
+                    </p>
+                }
+
+                <div class="mt-4">
+                    <a asp-page="/Account/Login" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Go to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

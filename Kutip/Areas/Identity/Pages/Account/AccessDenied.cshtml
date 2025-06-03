@@ -1,11 +1,28 @@
 ﻿@page
 @model AccessDeniedModel
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "Access Denied";
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<div class="account-container">
+    <div class="account-box">
+        <div class="card shadow border-danger">
+            <div class="card-body p-4 text-center">
+                <h2 class="card-title text-danger mb-3">
+                    <i class="bi bi-shield-exclamation me-2"></i>@ViewData["Title"]
+                </h2>
+
+                <p class="alert alert-danger">
+                    You do not have permission to access this resource.
+                </p>
+
+                <div class="mt-4">
+                    <a asp-page="/Account/Login" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-left me-1"></i> Return to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
