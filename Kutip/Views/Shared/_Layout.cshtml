@@ -103,6 +103,13 @@
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a asp-controller="Bins" asp-action="Map">
+                                    <i class="fas fa-map"></i>
+                                    <span class="sub-item">Route</span>
+                                </a>
+                            </li>
+
                             <!-- Add more Admin-only menu items here -->
                         }
                         else if (isTruckDriver)
@@ -125,6 +132,13 @@
                                 <a asp-controller="Schedules" asp-action="Index">
                                     <i class="fas fa-calendar-alt"></i>
                                     <span class="sub-item">Schedules</span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-controller="Bins" asp-action="Map">
+                                    <i class="fas fa-map"></i>
+                                    <span class="sub-item">Route</span>
                                 </a>
                             </li>
 
@@ -177,6 +191,59 @@
                 <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                     <div class="container-fluid">
                         <ul class="navbar-nav ms-auto align-items-center">
+                            @inject Kutip.Data.ApplicationDbContext _context
+
+                            @{
+                                var unreadCount = _context.Notifications.Count(n => !n.IsRead);
+                                var recentNotifs = _context.Notifications
+                                .OrderByDescending(n => n.CreatedAt)
+                                .Take(5)
+                                .ToList();
+                            }
+
+                            <li class="nav-item topbar-icon dropdown hidden-caret">
+                                <a class="nav-link dropdown-toggle"
+                                   href="#"
+                                   id="notifDropdown"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-haspopup="true"
+                                   aria-expanded="false">
+                                    <i class="fa fa-bell"></i>
+                                    @if (unreadCount > 0)
+                                    {
+                                        <span class="notification">@unreadCount</span>
+                                    }
+                                </a>
+                                <ul class="dropdown-menu notif-box animated fadeIn" aria-labelledby="notifDropdown">
+                                    <li>
+                                        <div class="dropdown-title">You have @unreadCount new notification@(unreadCount == 1 ? "" : "s")</div>
+                                    </li>
+                                    <li>
+                                        <div class="notif-scroll scrollbar-outer">
+                                            <div class="notif-center">
+                                                @foreach (var notif in recentNotifs)
+                                                {
+                                                    <a href="@Url.Action("Index", "Notifications")">
+                                                        <div class="notif-icon notif-primary">
+                                                            <i class="fa fa-info-circle"></i>
+                                                        </div>
+                                                        <div class="notif-content">
+                                                            <span class="block">@notif.Message</span>
+                                                            <span class="time">@notif.CreatedAt.ToString("g")</span>
+                                                        </div>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="see-all" href="@Url.Action("Index", "Notifications")">
+                                            See all notifications <i class="fa fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
                             @await Html.PartialAsync("_LoginPartial")
                         </ul>
                     </div>
@@ -188,6 +255,7 @@
         <!-- Main Content -->
         <div class="container">
             <div class="page-inner">
+                @await Html.PartialAsync("_Notification")
                 @*<div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                     <div>
                         <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
@@ -277,6 +345,8 @@
           lineColor: "#ffa534",
           fillColor: "rgba(255, 165, 52, .14)",
         });
+
+        setTimeout(() => $(".alert").alert('close'), 5000);
     </script>
     <!-- JavaScript -->
     @RenderSection("Scripts", required: false)

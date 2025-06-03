@@ -5,78 +5,82 @@
 }
 
 <div class="container">
-
+    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="my-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")"><i class="fas fa-home"></i> Home</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Truck")"><i class="fas fa-truck"></i> Trucks</a></li>
-            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-pen"></i> Create Truck</li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Truck" asp-action="Index"><i class="fas fa-truck"></i> Trucks</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-plus-circle"></i> Create Truck</li>
         </ol>
     </nav>
 
     <div class="page-inner">
-
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
+                <div class="card shadow">
                     <div class="card-header">
-                        <h4 class="card-title">
-                            Create New Truck
-                        </h4>
+                        <h4 class="card-title mb-0">Create New Truck</h4>
                         <p class="card-category text-muted mb-0">Enter truck details below</p>
                     </div>
+
                     <div class="card-body">
                         <form asp-action="Create" method="post" novalidate>
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                            <div class="mb-3">
-                                <label asp-for="TruckNo" class="form-label"></label>
-                                <input asp-for="TruckNo" class="form-control" placeholder="Enter Truck Number" />
-                                <span asp-validation-for="TruckNo" class="text-danger"></span>
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label asp-for="TruckNo" class="form-label">Truck Number</label>
+                                    <input asp-for="TruckNo" class="form-control" placeholder="Enter Truck Number" />
+                                    <span asp-validation-for="TruckNo" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Status" class="form-label">Truck Status</label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TruckStatus>()">
+                                        <option value="">Select Status</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Status" class="form-label"></label>
-                                <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TruckStatus>()">
-                                    <option value="">Select Status</option>
-                                </select>
-                                <span asp-validation-for="Status" class="text-danger"></span>
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label asp-for="DriverName" class="form-label">Driver Name</label>
+                                    <input asp-for="DriverName" class="form-control" placeholder="Enter Driver Name" />
+                                    <span asp-validation-for="DriverName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Phone" class="form-label">Phone Number</label>
+                                    <input asp-for="Phone" class="form-control" placeholder="Enter Phone Number" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="DriverName" class="form-label"></label>
-                                <input asp-for="DriverName" class="form-control" placeholder="Enter Driver Name" />
-                                <span asp-validation-for="DriverName" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Phone" class="form-label"></label>
-                                <input asp-for="Phone" class="form-control" placeholder="Enter Phone Number" />
-                                <span asp-validation-for="Phone" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Company" class="form-label"></label>
+                            <div class="mb-4">
+                                <label asp-for="Company" class="form-label">Company Name</label>
                                 <input asp-for="Company" class="form-control" placeholder="Enter Company Name" />
                                 <span asp-validation-for="Company" class="text-danger"></span>
                             </div>
 
-                            <div class="d-flex justify-content-between mt-4">
+                            <div class="d-flex justify-content-between">
                                 <a asp-action="Index" class="btn btn-primary btn-sm">
                                     <i class="fas fa-arrow-left"></i> Back
                                 </a>
                                 <div>
                                     <button type="reset" class="btn btn-outline-secondary btn-sm me-2">
-                                        <i class="fa fa-undo"></i> Reset
+                                        <i class="fas fa-undo"></i> Reset
                                     </button>
                                     <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-save"></i> Submit
+                                        <i class="fas fa-save"></i> Submit
                                     </button>
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
+                    </div> <!-- card-body -->
+                </div> <!-- card -->
             </div>
         </div>
     </div>
@@ -84,5 +88,4 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-
 }

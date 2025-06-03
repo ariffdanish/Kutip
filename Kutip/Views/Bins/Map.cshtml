@@ -1,0 +1,145 @@
+﻿@model IEnumerable<Kutip.Models.Bin>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realtime Location with Bins</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.css" />
+
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.js"></script>
+
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+    <script>
+        var map = L.map('map').setView([14.0860746, 100.608406], 13);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>  contributors'
+        }).addTo(map);
+
+        var taxiIcon = L.icon({
+            iconUrl: '@Url.Content("~/img/truck.png")',
+            iconSize: [70, 70]
+        });
+
+        var taxiMarker = null;
+        var currentLocation = null;
+
+        var routingControl = null;
+
+        // --- GET USER LOCATION ---
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+        } else {
+            navigator.geolocation.getCurrentPosition(setInitialLocation);
+            setInterval(() => {
+                navigator.geolocation.getCurrentPosition(updateLocation);
+            }, 5000);
+        }
+
+        function setInitialLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            currentLocation = L.latLng(lat, lng);
+            map.setView(currentLocation, 15);
+
+            if (taxiMarker) {
+                taxiMarker.setLatLng(currentLocation);
+            } else {
+                taxiMarker = L.marker(currentLocation, { icon: taxiIcon }).addTo(map);
+            }
+
+            plotBins();
+        }
+
+        function updateLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            currentLocation = L.latLng(lat, lng);
+            taxiMarker.setLatLng(currentLocation);
+            map.panTo(currentLocation);
+        }
+
+        // --- PLOT BINS FROM SERVER ---
+        function plotBins() {
+        @foreach (var bin in Model)
+        {
+            <text>
+                                var binMarker@(bin.BinId) = L.marker([@bin.Latitude, @bin.Longitude])
+                                    .addTo(map)
+                                    .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
+                                    .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude));
+            </text>
+        }
+        }
+
+        // --- SHOW ROUTE TO BIN ---
+        function showRouteToBin(lat, lng) {
+            if (!currentLocation) {
+                alert("Current location not available yet.");
+                return;
+            }
+
+            const destination = L.latLng(lat, lng);
+
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [currentLocation, destination],
+                routeWhileDragging: false,
+            }).on("routesfound", function (e) {
+                const route = e.routes[0];
+                animateTaxi(route);
+            });
+
+            routingControl.addTo(map);
+        }
+
+        // --- ANIMATE TAXI ---
+        function animateTaxi(route) {
+            const coords = route.coordinates;
+            let index = 0;
+
+            const interval = setInterval(() => {
+                if (index < coords.length) {
+                    const coord = coords[index];
+                    taxiMarker.setLatLng([coord.lat, coord.lng]);
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 100); // Adjust speed here
+        }
+    </script>
+</body>
+
+</html>

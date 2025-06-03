@@ -25,12 +25,14 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        // GET: Bin/Create
         public IActionResult Create()
         {
             return View();
         }
 
         [Authorize(Roles = "Admin")]
+        // POST: Bin/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Bin bin)
@@ -61,6 +63,7 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        // GET: Bin/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -74,6 +77,7 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        // POST: Bin/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Bin bin)
@@ -105,13 +109,17 @@ namespace Kutip.Controllers
             return _context.Bin.Any(e => e.BinId == id);
         }
 
+        // Controller: BinController.cs
+
         [Authorize(Roles = "Admin")]
+        // GET: Bin/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
                 return NotFound();
 
-            var bin = await _context.Bin.FirstOrDefaultAsync(m => m.BinId == id);
+            var bin = await _context.Bin
+                .FirstOrDefaultAsync(m => m.BinId == id);
             if (bin == null)
                 return NotFound();
 
@@ -119,6 +127,7 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        // POST: Bin/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -131,6 +140,15 @@ namespace Kutip.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
-    }
 
+        [Authorize(Roles = "Admin")]
+        // GET: Bins/Map
+        public IActionResult Map()
+        {
+            List<Bin> bins = _context.Bin.ToList();
+            return View(bins);
+        }
+
+
+    }
 }

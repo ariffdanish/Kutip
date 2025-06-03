@@ -18,7 +18,7 @@ namespace Kutip.Models
         public int TruckId { get; set; }
 
         [Required]
-        [Display(Name = "Date")]
+        [Display(Name = "Time")]
         public DateTime ScheduledDateTime { get; set; }
 
         [Required]

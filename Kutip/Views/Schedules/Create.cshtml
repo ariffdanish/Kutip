@@ -4,58 +4,84 @@
     ViewData["Title"] = "Create Schedule";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-1"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="container">
 
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="my-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Schedules" asp-action="Index"><i class="fas fa-calendar-alt"></i> Schedules</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Create Schedule</li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Schedules" asp-action="Index"><i class="fas fa-calendar-alt"></i> Schedules</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="fas fa-plus-circle"></i> Create Schedule
+            </li>
         </ol>
     </nav>
 
     <div class="page-inner">
         <div class="row">
             <div class="col-md-12">
-                <div class="card shadow-sm border-0">
+                <div class="card shadow">
                     <div class="card-header">
-                        <h4 class="card-title">Create New Schedule</h4>
-                        <p class="card-category text-muted mb-0">Enter schedule details below</p>
+                        <h4 class="card-title mb-0">Create New Schedule</h4>
+                        <p class="card-category text-muted mb-0">Fill in the schedule information below</p>
                     </div>
 
                     <div class="card-body">
                         <form asp-action="Create" method="post" novalidate>
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                            <div class="mb-3">
-                                <label asp-for="BinId" class="form-label">Select Bin</label>
-                                <select asp-for="BinId" class="form-select" asp-items="ViewBag.BinId">
-                                    <option value="">-- Select Bin --</option>
-                                </select>
-                                <span asp-validation-for="BinId" class="text-danger"></span>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="BinId" class="form-label">Select Bin</label>
+                                    <select asp-for="BinId" class="form-select" asp-items="ViewBag.BinId">
+                                        <option value="">-- Select Bin --</option>
+                                    </select>
+                                    <span asp-validation-for="BinId" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="TruckId" class="form-label">Assign Truck</label>
+                                    <select asp-for="TruckId" class="form-select" asp-items="ViewBag.TruckId">
+                                        <option value="">-- Select Truck --</option>
+                                    </select>
+                                    <span asp-validation-for="TruckId" class="text-danger"></span>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="TruckId" class="form-label">Assign Truck</label>
-                                <select asp-for="TruckId" class="form-select" asp-items="ViewBag.TruckId">
-                                    <option value="">-- Select Truck --</option>
-                                </select>
-                                <span asp-validation-for="TruckId" class="text-danger"></span>
-                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
+                                    <input asp-for="ScheduledDateTime" class="form-control" type="datetime-local"
+                                           value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                    <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
+                                </div>
 
-                            <div class="mb-3">
-                                <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
-                                <input asp-for="ScheduledDateTime" class="form-control" type="datetime-local" value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-                                <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-4">
-                                <label asp-for="Status" class="form-label">Schedule Status</label>
-                                <select asp-for="Status" class="form-select" asp-items="ViewBag.Status">
-                                    <option value="">-- Select Status --</option>
-                                </select>
-                                <span asp-validation-for="Status" class="text-danger"></span>
+                                <div class="col-md-6">
+                                    <label asp-for="Status" class="form-label">Schedule Status</label>
+                                    <select asp-for="Status" class="form-select" asp-items="ViewBag.Status">
+                                        <option value="">-- Select Status --</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
                             </div>
 
                             <div class="d-flex justify-content-between mt-4">
@@ -64,17 +90,16 @@
                                 </a>
                                 <div>
                                     <button type="reset" class="btn btn-outline-secondary btn-sm me-2">
-                                        <i class="fa fa-undo"></i> Reset
+                                        <i class="fas fa-undo"></i> Reset
                                     </button>
                                     <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-save"></i> Submit
+                                        <i class="fas fa-save"></i> Submit
                                     </button>
                                 </div>
                             </div>
                         </form>
-                    </div>
-
-                </div>
+                    </div> <!-- card-body -->
+                </div> <!-- card -->
             </div>
         </div>
     </div>

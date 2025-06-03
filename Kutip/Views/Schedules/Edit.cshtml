@@ -3,67 +3,104 @@
     ViewData["Title"] = "Edit Schedule";
 }
 
-<div class="page-inner">
-    <div class="page-header">
-        <h4 class="page-title">Edit Schedule</h4>
-        <ul class="breadcrumbs">
-            <li class="nav-home">
-                <a asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i></a>
-            </li>
-            <li class="separator"><i class="fas fa-chevron-right"></i></li>
-            <li class="nav-item"><a asp-controller="Schedules" asp-action="Index">Schedules</a></li>
-            <li class="separator"><i class="fas fa-chevron-right"></i></li>
-            <li class="nav-item">Edit Schedule</li>
-        </ul>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-1"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title fw-bold">Edit Schedule Details</div>
-        </div>
-        <div class="card-body">
-            <form asp-action="Edit" method="post">
-                <input type="hidden" asp-for="ScheduleId" />
+<div class="container">
 
-                <div class="form-group">
-                    <label asp-for="BinId" class="form-label">Select Bin</label>
-                    <select asp-for="BinId" class="form-control" asp-items="ViewBag.BinId">
-                        <option disabled value="">-- Select Bin --</option>
-                    </select>
-                    <span asp-validation-for="BinId" class="text-danger"></span>
-                </div>
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Schedules" asp-action="Index"><i class="fas fa-calendar-alt"></i> Schedules</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                <i class="fas fa-edit"></i> Edit Schedule
+            </li>
+        </ol>
+    </nav>
 
-                <div class="form-group">
-                    <label asp-for="TruckId" class="form-label">Assign Truck</label>
-                    <select asp-for="TruckId" class="form-control" asp-items="ViewBag.TruckId">
-                        <option disabled value="">-- Select Truck --</option>
-                    </select>
-                    <span asp-validation-for="TruckId" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
-                    <input asp-for="ScheduledDateTime" type="datetime-local" class="form-control"
-                           value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-                    <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Status" class="form-label">Schedule Status</label>
-                    <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<ScheduleStatus>()">
-                        <option disabled value="">-- Select Status --</option>
-                    </select>
-                    <span asp-validation-for="Status" class="text-danger"></span>
-                </div>
-
-                <div class="form-group mt-4 d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
-                    <div>
-                        <button type="reset" class="btn btn-outline-primary">Reset</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+    <div class="page-inner">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Edit Schedule Details</h4>
+                        <p class="card-category text-muted mb-0">Update the schedule information below</p>
                     </div>
-                </div>
-            </form>
+
+                    <div class="card-body">
+                        <form asp-action="Edit" method="post" novalidate>
+                            <input type="hidden" asp-for="ScheduleId" />
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="BinId" class="form-label">Select Bin</label>
+                                    <select asp-for="BinId" class="form-select" asp-items="ViewBag.BinId">
+                                        <option value="">-- Select Bin --</option>
+                                    </select>
+                                    <span asp-validation-for="BinId" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="TruckId" class="form-label">Assign Truck</label>
+                                    <select asp-for="TruckId" class="form-select" asp-items="ViewBag.TruckId">
+                                        <option value="">-- Select Truck --</option>
+                                    </select>
+                                    <span asp-validation-for="TruckId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
+                                    <input asp-for="ScheduledDateTime" type="datetime-local" class="form-control"
+                                           value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                    <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Status" class="form-label">Schedule Status</label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<ScheduleStatus>()">
+                                        <option value="">-- Select Status --</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </a>
+                                <div>
+                                    <button type="reset" class="btn btn-outline-primary btn-sm me-2">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div> <!-- card-body -->
+                </div> <!-- card -->
+            </div>
         </div>
     </div>
 </div>

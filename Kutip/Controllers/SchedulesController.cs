@@ -20,8 +20,8 @@ namespace Kutip.Controllers
             _context = context;
         }
 
-        // GET: Schedules
         [Authorize(Roles = "Admin,TruckDriver")]
+        // GET: Schedules
         public async Task<IActionResult> Index()
         {
             var schedules = await _context.Schedules
@@ -32,8 +32,8 @@ namespace Kutip.Controllers
             return View(schedules);
         }
 
-        // GET: Schedules/Details/5
         [Authorize(Roles = "Admin,TruckDriver")]
+        // GET: Schedules/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -48,18 +48,19 @@ namespace Kutip.Controllers
             return View(schedule);
         }
 
-        // GET: Schedules/Create
         [Authorize(Roles = "Admin")]
+        // GET: Schedules/Create
         public IActionResult Create()
         {
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
-            return View(new Schedule());
+            return View(new Schedule()); // send non-null model!
         }
 
-        // POST: Schedules/Create
+
         [Authorize(Roles = "Admin")]
+        // POST: Schedules/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Schedule schedule)
@@ -73,14 +74,16 @@ namespace Kutip.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Repopulate dropdowns on failed validation
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             return View(schedule);
         }
 
-        // GET: Schedules/Edit/5
+
         [Authorize(Roles = "Admin")]
+        // GET: Schedules/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -94,8 +97,8 @@ namespace Kutip.Controllers
             return View(schedule);
         }
 
-        // POST: Schedules/Edit/5
         [Authorize(Roles = "Admin")]
+        // POST: Schedules/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Schedule schedule)
@@ -115,10 +118,25 @@ namespace Kutip.Controllers
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
 
             return View(schedule);
+
+            _context.Update(schedule);
+            await _context.SaveChangesAsync();
+
+            // Add notification
+            _context.Notifications.Add(new Notification
+            {
+                Message = $"Schedule #{schedule.ScheduleId} updated at {DateTime.Now:f}"
+            });
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Schedule updated successfully!";
+            return RedirectToAction(nameof(Index));
+
         }
 
-        // GET: Schedules/Delete/5
+
         [Authorize(Roles = "Admin")]
+        // GET: Schedules/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -133,26 +151,94 @@ namespace Kutip.Controllers
             return View(schedule);
         }
 
-        // POST: Schedules/Delete/5
+
         [Authorize(Roles = "Admin")]
+        // POST: Schedules/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var schedule = await _context.Schedules.FindAsync(id);
-            if (schedule != null)
+            var schedule = await _context.Schedules
+                .Include(s => s.Truck)
+                .FirstOrDefaultAsync(s => s.ScheduleId == id);
+
+            if (schedule == null)
             {
-                _context.Schedules.Remove(schedule);
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "Schedule not found.";
+                return RedirectToAction(nameof(Index));
             }
 
+            // Optional: detach it from the truck (if required to avoid FK errors)
+            if (schedule.Truck != null)
+            {
+                schedule.Truck.Schedules?.Remove(schedule);
+            }
+
+            _context.Schedules.Remove(schedule);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Schedule deleted successfully!";
             return RedirectToAction(nameof(Index));
+
+            _context.Notifications.Add(new Notification
+            {
+                Message = $"Schedule #{id} was deleted at {DateTime.Now:f}"
+            });
+            await _context.SaveChangesAsync();
+
         }
 
-        // POST: Schedules/AutoSchedule
+
         [Authorize(Roles = "Admin")]
-        [HttpPost]
+        // GET: Schedules/AutoSchedule
+        [HttpGet]
         public async Task<IActionResult> AutoSchedule()
+        {
+            var today = DateTime.Today;
+            var weekStart = today.AddDays(-(int)today.DayOfWeek);
+            var weekEnd = weekStart.AddDays(7);
+
+            var unscheduledBins = await _context.Bin
+                .Where(b => !_context.Schedules.Any(s =>
+                    s.BinId == b.BinId &&
+                    s.ScheduledDateTime >= weekStart &&
+                    s.ScheduledDateTime < weekEnd))
+                .ToListAsync();
+
+            var trucks = await _context.Trucks
+                .Include(t => t.Schedules.Where(s =>
+                    s.ScheduledDateTime >= weekStart &&
+                    s.ScheduledDateTime < weekEnd))
+                .Where(t => t.Status == TruckStatus.Active)
+                .ToListAsync();
+
+            const int KPI_LIMIT = 20;
+            var availableTrucks = trucks
+                .Where(t => t.Schedules.Count < KPI_LIMIT)
+                .ToList();
+
+            if (unscheduledBins.Any() && availableTrucks.Any())
+            {
+                ViewBag.CanSchedule = true;
+                ViewBag.Message = "✅ Smart scheduling can be done.";
+            }
+            else
+            {
+                ViewBag.CanSchedule = false;
+                ViewBag.Message = "⚠️ No bins or eligible trucks available for scheduling.";
+            }
+
+            ViewBag.BinCount = unscheduledBins.Count;
+            ViewBag.TruckCount = availableTrucks.Count;
+
+            return View();
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        // POST: Schedules/AutoScheduleConfirmed
+        [HttpPost]
+        public async Task<IActionResult> AutoScheduleConfirmed()
         {
             var today = DateTime.Today;
             var weekStart = today.AddDays(-(int)today.DayOfWeek);
@@ -225,9 +311,23 @@ namespace Kutip.Controllers
                 truckIndex++;
             }
 
+            // Save the new schedules
             await _context.SaveChangesAsync();
+
+            // Log a system notification
+            _context.Notifications.Add(new Notification
+            {
+                Message = "Smart auto-scheduling completed at " + DateTime.Now.ToString("f"),
+                CreatedAt = DateTime.Now // ✅ Optional, but safer
+            });
+
+            await _context.SaveChangesAsync(); // Save the notification
+
+            // Show success message to user
             TempData["Success"] = "Smart auto-scheduling completed!";
             return RedirectToAction(nameof(Index));
+
+
         }
     }
 }

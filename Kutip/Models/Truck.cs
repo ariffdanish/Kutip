@@ -42,7 +42,11 @@ namespace Kutip.Models
         public DateTimeOffset UpdatedAt { get; set; } = DateTime.Now;
 
         public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+        public virtual List<Bin> Bins { get; set; }
+        // Models/Truck.cs
 
+        public virtual double CurrentLatitude { get; set; }
+        public virtual double CurrentLongitude { get; set; }
 
     }
 

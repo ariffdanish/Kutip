@@ -1,0 +1,43 @@
+﻿@{
+    var success = TempData["Success"] as string;
+    var error = TempData["Error"] as string;
+}
+<!-- Alerts for TempData Messages -->
+@if (!string.IsNullOrEmpty(success))
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i><strong>Success:</strong> @success
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> @error
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@inject Kutip.Data.ApplicationDbContext _context
+
+@{
+    var latestNotifs = _context.Notifications
+        .OrderByDescending(n => n.CreatedAt)
+        .Take(5)
+        .ToList();
+}
+
+<!-- Display Latest Notifications -->
+@if (latestNotifs.Any())
+{
+    <div class="mt-4">
+        <h5 class="mb-3"><i class="fas fa-bell me-2 text-primary"></i>Recent Notifications</h5>
+        @foreach (var notif in latestNotifs)
+        {
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>@notif.Message
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
+}

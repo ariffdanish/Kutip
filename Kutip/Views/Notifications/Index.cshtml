@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Kutip.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0"><i class="fas fa-bell"></i> Notifications</h2>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-1"></i> No notifications available.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.First().Message)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().CreatedAt)</th>
+                        <th>@Html.DisplayNameFor(model => model.First().IsRead)</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.Message)</td>
+                            <td>@item.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")</td>
+                            <td>
+                                @if (item.IsRead)
+                                {
+                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Read</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-envelope"></i> Unread</span>
+                                }
+                            </td>
+                            
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
