@@ -1,8 +1,45 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<Kutip.Models.ApplicationUser> UserManager
+@inject SignInManager<Kutip.Models.ApplicationUser> SignInManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
     ViewData["Title"] = "Home Page";
+
+    var user = await UserManager.GetUserAsync(HttpContextAccessor.HttpContext.User);
+    var isAdmin = user != null && await UserManager.IsInRoleAsync(user, "Admin");
+    var isOperator = user != null && await UserManager.IsInRoleAsync(user, "Operator");
+    var isTruckDriver = user != null && await UserManager.IsInRoleAsync(user, "TruckDriver");
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @if (!SignInManager.IsSignedIn(HttpContextAccessor.HttpContext.User))
+    {
+        <h1 class="display-4">Welcome Guest</h1>
+        <p>Please <a href="/Identity/Account/Login">login</a> to access your dashboard.</p>
+    }
+    else if (isAdmin)
+    {
+        <h1 class="display-4">Welcome Admin</h1>
+        <p>Manage the system, users, and monitor overall operations.</p>
+        <a href="/Dashboard">Go to Admin Dashboard</a>
+    }
+    else if (isOperator)
+    {
+        <h1 class="display-4">Welcome Operator</h1>
+        <p>Manage bin schedules and operational tasks.</p>
+        <a href="/Operator/Dashboard">Go to Operator Dashboard</a>
+    }
+    else if (isTruckDriver)
+    {
+        <h1 class="display-4">Welcome Truck Driver</h1>
+        <p>View your assigned routes and update bin collection status.</p>
+        <a href="/Driver/Dashboard">Go to Driver Dashboard</a>
+    }
+    else
+    {
+        <h1 class="display-4">Welcome User</h1>
+        <p>Explore the system and your available features.</p>
+        <a href="/User/Dashboard">Go to Your Dashboard</a>
+    }
 </div>
