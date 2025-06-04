@@ -23,7 +23,7 @@
 @{
     var latestNotifs = _context.Notifications
         .OrderByDescending(n => n.CreatedAt)
-        .Take(5)
+        .Take(1)
         .ToList();
 }
 
@@ -31,7 +31,6 @@
 @if (latestNotifs.Any())
 {
     <div class="mt-4">
-        <h5 class="mb-3"><i class="fas fa-bell me-2 text-primary"></i>Recent Notifications</h5>
         @foreach (var notif in latestNotifs)
         {
             <div class="alert alert-info alert-dismissible fade show" role="alert">
