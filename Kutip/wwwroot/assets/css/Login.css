@@ -1,39 +1,108 @@
-﻿/* Container centers content, full height with padding */
-.account-container {
-    background-color: aqua;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+﻿/* Background animation */
+body {
+    background: linear-gradient(-45deg, #5A6CF3, #6EDCD9, #FDB99B, #FF6B6B);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     min-height: 100vh;
-    padding: 2rem;
-    box-sizing: border-box;
-    animation: fadeScaleIn 0.6s ease forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* White box with rounded corners, shadow, max width, and slight opacity */
-.account-box {
-    background-color: #fff;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    max-width: 500px;
-    width: 100%;
-    opacity: 0.95;
-    transform-origin: center;
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
-/* Keyframes for fade-in + scale */
-@keyframes fadeScaleIn {
+/* Card container animation */
+/* Card container size and animation */
+.account-box .card {
+    width: 500px;
+    max-width: 95%; /* Responsive fallback on smaller screens */
+    margin: auto;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
     0% {
         opacity: 0;
-        transform: scale(0.9);
+        transform: translateY(40px);
     }
-
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0);
     }
+}
+
+/* Input focus styles */
+.form-floating .form-control:focus {
+    border-color: #5A6CF3;
+    box-shadow: 0 0 0 0.25rem rgba(90, 108, 243, 0.25);
+}
+
+/* Labels */
+label {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Validation */
+.text-danger {
+    font-size: 0.85rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background: #5A6CF3;
+    border-color: #5A6CF3;
+    font-weight: 600;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #4A5DE2;
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* External login buttons */
+.btn-outline-dark {
+    transition: all 0.3s ease;
+}
+
+.btn-outline-dark:hover {
+    background-color: #333;
+    color: #fff;
+    transform: scale(1.02);
+}
+
+/* Card titles */
+.card-title i {
+    color: #5A6CF3;
+}
+
+/* Center text links */
+.account-box .text-center a {
+    color: #5A6CF3;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.account-box .text-center a:hover {
+    color: #3F51B5;
+    text-decoration: underline;
 }
