@@ -37,10 +37,11 @@
 
 </head>
 <body>
-    <div class="container container-login animated fadeIn">
-        @RenderBody()
+    <div class="login-wrapper">
+        <div class="container container-login animated fadeIn">
+            @RenderBody()
+        </div>
     </div>
-
     @RenderSection("Scripts", required: false)
 </body>
 

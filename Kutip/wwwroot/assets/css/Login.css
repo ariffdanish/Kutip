@@ -21,6 +21,23 @@ body {
     }
 }
 
+/* Wrapper with padding and subtle shadow */
+.login-wrapper {
+    padding: 40px 20px;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.15);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    max-width: 600px;
+    margin: 60px auto;
+    transition: box-shadow 0.3s ease;
+}
+
+    /* Optional hover effect for wrapper */
+    .login-wrapper:hover {
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.25);
+    }
+
 /* Card container animation */
 /* Card container size and animation */
 .account-box .card {
@@ -32,6 +49,7 @@ body {
     background: rgba(255, 255, 255, 0.95);
     box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
     animation: fadeInUp 0.8s ease-out;
+    
 }
 
 @keyframes fadeInUp {
