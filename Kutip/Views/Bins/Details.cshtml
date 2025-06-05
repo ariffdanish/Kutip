@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Bin Details";
+    bool isTruckDriver = User.IsInRole("TruckDriver");
 }
 
 <div class="container">
@@ -25,9 +26,12 @@
                             <i class="fa fa-binoculars me-2"></i>Bin Information
                         </h4>
                         <div>
-                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@Model?.BinId" title="Edit">
-                                <i class="fa fa-edit"></i> Edit
-                            </a>
+                            @if (!isTruckDriver)
+                            {
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@Model?.BinId" title="Edit">
+                                    <i class="fa fa-edit"></i> Edit
+                                </a>
+                            }
                             <a class="btn btn-sm btn-primary" asp-action="Index" title="Back to List">
                                 <i class="fa fa-arrow-left"></i> Back to List
                             </a>

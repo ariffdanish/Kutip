@@ -18,11 +18,15 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Bin> bins = _context.Bin.ToList();
+            var bins = await _context.Bin
+                .Include(b => b.Schedules) // Include schedules for each bin
+                .ToListAsync();
+
             return View(bins);
         }
+
 
         [Authorize(Roles = "Admin")]
         // GET: Bin/Create
@@ -141,7 +145,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,TruckDriver")]
         // GET: Bins/Map
         public IActionResult Map()
         {

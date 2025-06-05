@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Bin List";
+    bool isTruckDriver = User.IsInRole("TruckDriver");
 }
 
 <div class="container">
@@ -19,9 +20,12 @@
                 <div class="card shadow">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0">Bin List</h4>
-                        <a asp-action="Create" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus"></i> Create Bin
-                        </a>
+                        @if (!isTruckDriver)
+                        {
+                            <a asp-action="Create" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Create Bin
+                            </a>
+                        }
                     </div>
 
                     <div class="card-body">
@@ -35,6 +39,7 @@
                                         <th>@Html.DisplayNameFor(model => model.State)</th>
                                         <th>@Html.DisplayNameFor(model => model.PostCode)</th>
                                         <th>Status</th>
+                                        <th>Schedule Status</th>  <!-- New Column -->
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -60,19 +65,71 @@
                                                 <span class="@badgeClass">@status</span>
                                             </td>
                                             <td>
-                                                <a asp-action="Edit" asp-route-id="@item.BinId" class="btn btn-warning btn-sm" title="Edit">
-                                                    <i class="fa fa-edit"></i>
-                                                </a>
-                                                <a asp-action="Details" asp-route-id="@item.BinId" class="btn btn-info btn-sm" title="View Details">
-                                                    <i class="fa fa-eye"></i>
-                                                </a>
-                                                <a asp-action="Delete" asp-route-id="@item.BinId" class="btn btn-danger btn-sm" title="Delete">
-                                                    <i class="fa fa-trash"></i>
-                                                </a>
+                                                @{
+                                                    var latestSchedule = item.Schedules?
+                                                        .OrderByDescending(s => s.ScheduledDateTime)
+                                                        .FirstOrDefault();
+
+                                                    string scheduleStatus = latestSchedule != null ? latestSchedule.Status.ToString() : "No Schedule";
+
+                                                    string scheduleBadgeClass = scheduleStatus switch
+                                                    {
+                                                        "Scheduled" => "badge bg-primary",
+                                                        "Completed" => "badge bg-success",
+                                                        "Missed" => "badge bg-danger",
+                                                        "Reassigned" => "badge bg-warning",
+                                                        _ => "badge bg-secondary"
+                                                    };
+                                                }
+                                                <span class="@scheduleBadgeClass">@scheduleStatus</span>
+                                            </td>
+                                            <td>
+                                                @if (isTruckDriver)
+                                                {
+                                                    if (latestSchedule != null)
+                                                    {
+                                                        <form method="post" asp-controller="Schedules" asp-action="MarkDone" class="d-inline" onsubmit="return confirm('Mark schedule @latestSchedule.ScheduleId as DONE?');">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="scheduleId" value="@latestSchedule.ScheduleId" />
+                                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
+                                                            <button type="submit" class="btn btn-success btn-sm" title="Mark as Done">
+                                                                <i class="fas fa-check"></i> DONE
+                                                            </button>
+                                                        </form>
+
+
+                                                        <form method="post" asp-controller="Schedules" asp-action="ReportIssue" class="d-inline ms-1" onsubmit="return confirm('Report ISSUE for schedule @latestSchedule.ScheduleId?');">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="scheduleId" value="@latestSchedule.ScheduleId" />
+                                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Report Issue">
+                                                                <i class="fas fa-exclamation-triangle"></i> ISSUE
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No schedule</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <!-- For Admin and others, show original Edit, Details, Delete -->
+                                                    <a asp-action="Edit" asp-route-id="@item.BinId" class="btn btn-warning btn-sm" title="Edit">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                    <a asp-action="Details" asp-route-id="@item.BinId" class="btn btn-info btn-sm" title="View Details">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                    <a asp-action="Delete" asp-route-id="@item.BinId" class="btn btn-danger btn-sm" title="Delete">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                }
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
+
                             </table>
                         </div>
                     </div>
