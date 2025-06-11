@@ -93,10 +93,15 @@
                     <!-- Bin Button -->
                     <a href="@Url.Action("BinReportPreviewWrapper", "Dashboard", new { preview = "true" })"
                        target="_blank"
-                       class="btn btn-secondary">
-                        <i class="bi bi-eye fs-5"></i> Bin Report
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-eye fs-5 me-1"></i> Bin Report
                     </a>
 
+                    <a href="@Url.Action("PickupReportPreview", "Dashboard", new { preview = "true" })"
+                       target="_blank"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-eye fs-5 me-1"></i> Pickup Report
+                    </a>
                 </div>
             </div>
         </div>

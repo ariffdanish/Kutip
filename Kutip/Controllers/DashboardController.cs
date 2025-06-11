@@ -236,6 +236,57 @@ namespace Kutip.Controllers
 
         ///END BIN
 
+        ///PICKUP
+        public IActionResult PickupReportPreview(DateTime? startDate, DateTime? endDate, string preview = "false")
+        {
+            var schedules = _context.Schedules
+                .Include(s => s.Truck)
+                .Include(s => s.Bin)
+                .AsQueryable();
+
+            if (startDate.HasValue)
+                schedules = schedules.Where(s => s.ScheduledDateTime >= startDate.Value);
+
+            if (endDate.HasValue)
+                schedules = schedules.Where(s => s.ScheduledDateTime <= endDate.Value);
+
+            //Include both Completed and Missed
+            schedules = schedules.Where(s =>
+                s.Status == ScheduleStatus.Completed ||
+                s.Status == ScheduleStatus.Missed);
+
+            ViewBag.IsPreview = string.Equals(preview, "true", StringComparison.OrdinalIgnoreCase);
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+
+            return View("PickupReport", schedules.ToList());
+        }
+
+        public IActionResult ExportPickupReport(DateTime? startDate, DateTime? endDate)
+        {
+            var schedules = _context.Schedules
+                .Include(s => s.Truck)
+                .Include(s => s.Bin)
+                .AsQueryable();
+
+            if (startDate.HasValue)
+                schedules = schedules.Where(s => s.ScheduledDateTime >= startDate.Value);
+
+            if (endDate.HasValue)
+                schedules = schedules.Where(s => s.ScheduledDateTime <= endDate.Value);
+
+            //Include both Completed and Missed
+            schedules = schedules.Where(s =>
+                s.Status == ScheduleStatus.Completed ||
+                s.Status == ScheduleStatus.Missed);
+
+            return new ViewAsPdf("PickupReport", schedules.ToList())
+            {
+                FileName = "PickupReport.pdf"
+            };
+        }
+
+        ///END PICKUP
 
 
     }
