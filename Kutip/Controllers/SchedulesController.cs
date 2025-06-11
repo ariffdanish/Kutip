@@ -165,11 +165,18 @@ namespace Kutip.Controllers
                 .ToListAsync();
 
             const int KPI_LIMIT = 3;
-            var availableTrucks = trucks.Where(t => t.Schedules.Count < KPI_LIMIT).ToList();
 
+            var availableTrucks = trucks
+                .Where(t => t.Schedules.Count < KPI_LIMIT)
+                .ToList();
+
+            ViewBag.BinCount = unscheduledBins.Count;
+            ViewBag.TruckCount = availableTrucks.Count;
             ViewBag.CanSchedule = unscheduledBins.Any() && availableTrucks.Any();
+
             return View();
         }
+
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
