@@ -54,6 +54,8 @@ namespace Kutip.Controllers
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
+
+
             return View(new Schedule());
         }
 
@@ -96,10 +98,6 @@ namespace Kutip.Controllers
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             return View(schedule);
         }
-
-
-
-
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
