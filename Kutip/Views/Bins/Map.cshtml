@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Realtime Location with Bins</title>
+    <title>Bin Map</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.css" />
@@ -45,7 +45,6 @@
         }).addTo(map);
 
         // Icons
-        const TAXI_ICON_URL = '/assets/img/truck.png';
         const BIN_ICON_URL = '/assets/img/bin.png';
         const BIN_COMPLETED_ICON_URL = '/assets/img/completed.png';
 
@@ -53,35 +52,39 @@
         let currentLocation = null;
         let routingControl = null;
 
-        // Taxi Icon
-        var taxiIcon = L.icon({
-            iconUrl: TAXI_ICON_URL,
-            iconSize: [35, 35],
-            iconAnchor: [17, 35]
-        });
-
-        // Bin Icon (default)
+        // Bin Icon
         var binIcon = L.icon({
             iconUrl: BIN_ICON_URL,
             iconSize: [35, 35],
             iconAnchor: [17, 35]
         });
 
-        // Completed Bin Icon
         var completedBinIcon = L.icon({
             iconUrl: BIN_COMPLETED_ICON_URL,
             iconSize: [35, 35],
             iconAnchor: [17, 35]
         });
 
-        // --- GET USER LOCATION ---
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
-        } else {
+        function initAdminMode() {
+            map.setView([14.0860746, 100.608406], 6); // General Malaysia view
+
+        @foreach (var bin in Model)
+        {
+            <text>
+                        L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`);
+            </text>
+        }
+        }
+
+        function initTruckDriverMode() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition(setInitialLocation);
-            setInterval(() => {
-                navigator.geolocation.getCurrentPosition(updateLocation);
-            }, 5000);
         }
 
         function setInitialLocation(position) {
@@ -90,24 +93,19 @@
             currentLocation = L.latLng(lat, lng);
             map.setView(currentLocation, 15);
 
-            if (taxiMarker) {
-                taxiMarker.setLatLng(currentLocation);
-            } else {
+            var taxiIcon = L.icon({
+                iconUrl: '/assets/img/truck.png',
+                iconSize: [35, 35],
+                iconAnchor: [17, 35]
+            });
+
+            if (!taxiMarker) {
                 taxiMarker = L.marker(currentLocation, { icon: taxiIcon }).addTo(map);
             }
 
             plotBins();
         }
 
-        function updateLocation(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            currentLocation = L.latLng(lat, lng);
-            taxiMarker.setLatLng(currentLocation);
-            //map.panTo(currentLocation);
-        }
-
-        // --- PLOT BINS FROM SERVER ---
         function plotBins() {
         @foreach (var bin in Model)
         {
@@ -120,7 +118,6 @@
         }
         }
 
-        
         function showRouteToBin(binLat, binLng, binId) {
             if (!currentLocation) {
                 alert("Current location not available yet.");
@@ -143,7 +140,6 @@
             routingControl.addTo(map);
         }
 
-        // --- ANIMATE TAXI AND UPDATE BIN ICON ON ARRIVAL ---
         function animateTaxi(route, binId) {
             const coords = route.coordinates;
             let index = 0;
@@ -155,34 +151,31 @@
                     index++;
                 } else {
                     clearInterval(interval);
-
-                    // Move truck to final bin location
                     taxiMarker.setLatLng(coords[coords.length - 1]);
-
-                    // Update bin icon to 'completed' when animation ends
                     updateBinIcon(binId);
                 }
-            }, 100); // Adjust speed here
+            }, 100);
         }
 
-        // --- UPDATE BIN ICON TO COMPLETED WHEN TRUCK ARRIVES ---
         function updateBinIcon(binId) {
-            // Find the bin marker by ID
             const binMarker = window["binMarker_" + binId];
 
             if (binMarker) {
-                // Remove old popup
-                binMarker.unbindPopup();
-
-                // Change icon to 'completed'
                 binMarker.setIcon(completedBinIcon);
-
-                // Add new popup for completed bin
                 binMarker.bindPopup("Bin Completed").openPopup();
-            } else {
-                console.error(`Bin marker with ID ${binId} not found.`);
             }
         }
+
+        // --- ROLE-BASED INIT ---
+        document.addEventListener("DOMContentLoaded", function () {
+            const userRole = "@ViewBag.UserRole";
+
+            if (userRole === "Admin") {
+                initAdminMode();
+            } else {
+                initTruckDriverMode();
+            }
+        });
     </script>
 </body>
 

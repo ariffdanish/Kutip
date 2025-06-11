@@ -145,10 +145,15 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "TruckDriver")]
+        [Authorize(Roles = "Admin,TruckDriver")]
         public IActionResult Map()
         {
             List<Bin> bins = _context.Bin.ToList();
+
+            // Pass user role to view
+            var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
+            ViewBag.UserRole = userRole;
+
             return View(bins);
         }
 
