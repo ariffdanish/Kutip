@@ -146,10 +146,14 @@ namespace Kutip.Controllers
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
-        // GET: Bins/Map
         public IActionResult Map()
         {
             List<Bin> bins = _context.Bin.ToList();
+
+            // Pass user role to view
+            var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
+            ViewBag.UserRole = userRole;
+
             return View(bins);
         }
 

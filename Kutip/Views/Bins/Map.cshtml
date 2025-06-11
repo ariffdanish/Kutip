@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Realtime Location with Bins</title>
+    <title>Bin Map</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.css" />
@@ -44,24 +44,47 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>  contributors'
         }).addTo(map);
 
-        var taxiIcon = L.icon({
-            iconUrl: '@Url.Content("~/img/truck.png")',
-            iconSize: [70, 70]
+        // Icons
+        const BIN_ICON_URL = '/assets/img/bin.png';
+        const BIN_COMPLETED_ICON_URL = '/assets/img/completed.png';
+
+        let taxiMarker = null;
+        let currentLocation = null;
+        let routingControl = null;
+
+        // Bin Icon
+        var binIcon = L.icon({
+            iconUrl: BIN_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
         });
 
-        var taxiMarker = null;
-        var currentLocation = null;
+        var completedBinIcon = L.icon({
+            iconUrl: BIN_COMPLETED_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+        });
 
-        var routingControl = null;
+        function initAdminMode() {
+            map.setView([14.0860746, 100.608406], 6); // General Malaysia view
 
-        // --- GET USER LOCATION ---
-        if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
-        } else {
+        @foreach (var bin in Model)
+        {
+            <text>
+                        L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`);
+            </text>
+        }
+        }
+
+        function initTruckDriverMode() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition(setInitialLocation);
-            setInterval(() => {
-                navigator.geolocation.getCurrentPosition(updateLocation);
-            }, 5000);
         }
 
         function setInitialLocation(position) {
@@ -70,44 +93,38 @@
             currentLocation = L.latLng(lat, lng);
             map.setView(currentLocation, 15);
 
-            if (taxiMarker) {
-                taxiMarker.setLatLng(currentLocation);
-            } else {
+            var taxiIcon = L.icon({
+                iconUrl: '/assets/img/truck.png',
+                iconSize: [35, 35],
+                iconAnchor: [17, 35]
+            });
+
+            if (!taxiMarker) {
                 taxiMarker = L.marker(currentLocation, { icon: taxiIcon }).addTo(map);
             }
 
             plotBins();
         }
 
-        function updateLocation(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            currentLocation = L.latLng(lat, lng);
-            taxiMarker.setLatLng(currentLocation);
-            map.panTo(currentLocation);
-        }
-
-        // --- PLOT BINS FROM SERVER ---
         function plotBins() {
         @foreach (var bin in Model)
         {
             <text>
-                                var binMarker@(bin.BinId) = L.marker([@bin.Latitude, @bin.Longitude])
-                                    .addTo(map)
-                                    .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
-                                    .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude));
+                        var binMarker_@bin.BinId = L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
+                            .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, '@bin.BinId'));
             </text>
         }
         }
 
-        // --- SHOW ROUTE TO BIN ---
-        function showRouteToBin(lat, lng) {
+        function showRouteToBin(binLat, binLng, binId) {
             if (!currentLocation) {
                 alert("Current location not available yet.");
                 return;
             }
 
-            const destination = L.latLng(lat, lng);
+            const destination = L.latLng(binLat, binLng);
 
             if (routingControl) {
                 map.removeControl(routingControl);
@@ -115,17 +132,15 @@
 
             routingControl = L.Routing.control({
                 waypoints: [currentLocation, destination],
-                routeWhileDragging: false,
+                routeWhileDragging: false
             }).on("routesfound", function (e) {
-                const route = e.routes[0];
-                animateTaxi(route);
+                animateTaxi(e.routes[0], binId);
             });
 
             routingControl.addTo(map);
         }
 
-        // --- ANIMATE TAXI ---
-        function animateTaxi(route) {
+        function animateTaxi(route, binId) {
             const coords = route.coordinates;
             let index = 0;
 
@@ -136,9 +151,31 @@
                     index++;
                 } else {
                     clearInterval(interval);
+                    taxiMarker.setLatLng(coords[coords.length - 1]);
+                    updateBinIcon(binId);
                 }
-            }, 100); // Adjust speed here
+            }, 100);
         }
+
+        function updateBinIcon(binId) {
+            const binMarker = window["binMarker_" + binId];
+
+            if (binMarker) {
+                binMarker.setIcon(completedBinIcon);
+                binMarker.bindPopup("Bin Completed").openPopup();
+            }
+        }
+
+        // --- ROLE-BASED INIT ---
+        document.addEventListener("DOMContentLoaded", function () {
+            const userRole = "@ViewBag.UserRole";
+
+            if (userRole === "Admin") {
+                initAdminMode();
+            } else {
+                initTruckDriverMode();
+            }
+        });
     </script>
 </body>
 

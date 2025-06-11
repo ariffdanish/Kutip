@@ -1,12 +1,14 @@
 ﻿@model IEnumerable<Kutip.Models.Bin>
+@{
+    ViewData["Title"] = "Bin Routes";
+}
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Realtime Location with Bins</title>
+    <title>Realtime Bin Route Map</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.css" />
@@ -15,9 +17,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
         }
 
         #map {
@@ -26,7 +29,6 @@
         }
     </style>
 </head>
-
 <body>
     <div id="map"></div>
 
@@ -37,6 +39,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
     <script>
+        // Initialize map
         var map = L.map('map').setView([14.0860746, 100.608406], 13);
 
         // Add OpenStreetMap tile layer
@@ -44,24 +47,45 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>  contributors'
         }).addTo(map);
 
+        // Icons
+        const TAXI_ICON_URL = '/assets/img/truck.png';
+        const BIN_ICON_URL = '/assets/img/bin.png';
+        const BIN_COMPLETED_ICON_URL = '/assets/img/completed.png';
+
+        let taxiMarker = null;
+        let currentLocation = null;
+        let routingControl = null;
+
+        // Custom Icons
         var taxiIcon = L.icon({
-            iconUrl: '@Url.Content("~/img/truck.png")',
-            iconSize: [70, 70]
+            iconUrl: TAXI_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
         });
 
-        var taxiMarker = null;
-        var currentLocation = null;
+        var binIcon = L.icon({
+            iconUrl: BIN_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+        });
 
-        var routingControl = null;
+        var completedBinIcon = L.icon({
+            iconUrl: BIN_COMPLETED_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+        });
 
         // --- GET USER LOCATION ---
         if (!navigator.geolocation) {
-            alert("Geolocation is not supported by your browser.");
+            alert("Geolocation not supported.");
         } else {
-            navigator.geolocation.getCurrentPosition(setInitialLocation);
-            setInterval(() => {
-                navigator.geolocation.getCurrentPosition(updateLocation);
-            }, 5000);
+            navigator.geolocation.getCurrentPosition(setInitialLocation, geolocationError);
+        }
+
+        function geolocationError(error) {
+            console.error('Geolocation error:', error.message);
+            alert("Unable to get current location. Using fallback coordinates.");
+            setInitialLocation({ coords: { latitude: 14.0860746, longitude: 100.608406 } });
         }
 
         function setInitialLocation(position) {
@@ -79,35 +103,30 @@
             plotBins();
         }
 
-        function updateLocation(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            currentLocation = L.latLng(lat, lng);
-            taxiMarker.setLatLng(currentLocation);
-            map.panTo(currentLocation);
-        }
-
         // --- PLOT BINS FROM SERVER ---
         function plotBins() {
         @foreach (var bin in Model)
         {
             <text>
-                            var binMarker@(bin.BinId) = L.marker([@bin.Latitude, @bin.Longitude])
+                            var binMarker_@bin.BinId = L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
                                 .addTo(map)
                                 .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
-                                .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude));
+                                .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, '@bin.BinId'));
             </text>
         }
         }
 
         // --- SHOW ROUTE TO BIN ---
-        function showRouteToBin(lat, lng) {
+        function showRouteToBin(binLat, binLng, binId) {
             if (!currentLocation) {
                 alert("Current location not available yet.");
                 return;
             }
 
-            const destination = L.latLng(lat, lng);
+            const destination = L.latLng(binLat, binLng);
+
+            console.log('From:', currentLocation);
+            console.log('To:', destination);
 
             if (routingControl) {
                 map.removeControl(routingControl);
@@ -116,16 +135,29 @@
             routingControl = L.Routing.control({
                 waypoints: [currentLocation, destination],
                 routeWhileDragging: false,
-            }).on("routesfound", function (e) {
-                const route = e.routes[0];
-                animateTaxi(route);
-            });
-
-            routingControl.addTo(map);
+                router: L.Routing.osrm(), // Use OSRM for routing
+                routeOptions: {
+                    profile: 'driving-car' // Or 'cycling-regular', 'foot-walking'
+                },
+                createMarker: function () { return null; }, // Don't add default markers
+                lineOptions: {
+                    styles: [{ color: "#0077FF", weight: 4 }]
+                }
+            })
+            .on("routesfound", function (e) {
+                animateTaxi(e.routes[0], binId);
+            })
+            .on("routeselected", function (e) {
+                console.log("Route selected:", e.route.summary.totalDistance / 1000 + " km");
+            })
+            .on("routesnotfound", function () {
+                alert("No route found between locations.");
+            })
+            .addTo(map);
         }
 
-        // --- ANIMATE TAXI ---
-        function animateTaxi(route) {
+        // --- ANIMATE TRUCK ALONG THE ROUTE ---
+        function animateTaxi(route, binId) {
             const coords = route.coordinates;
             let index = 0;
 
@@ -136,10 +168,23 @@
                     index++;
                 } else {
                     clearInterval(interval);
+                    taxiMarker.setLatLng(coords[coords.length - 1]);
+                    updateBinIcon(binId);
                 }
-            }, 100); // Adjust speed here
+            }, 100); // Animation speed
+        }
+
+        // --- UPDATE BIN ICON WHEN ARRIVED ---
+        function updateBinIcon(binId) {
+            const binMarker = window["binMarker_" + binId];
+
+            if (binMarker) {
+                binMarker.setIcon(completedBinIcon);
+                binMarker.bindPopup("Bin Completed").openPopup();
+            } else {
+                console.warn(`Bin marker ${binId} not found.`);
+            }
         }
     </script>
 </body>
-
 </html>

@@ -40,9 +40,7 @@ namespace Kutip.Controllers
                 .Include(s => s.Truck)
                 .FirstOrDefaultAsync(m => m.ScheduleId == id);
 
-            if (schedule == null) return NotFound();
-
-            return View(schedule);
+            return schedule == null ? NotFound() : View(schedule);
         }
 
         [Authorize(Roles = "Admin")]
@@ -59,19 +57,20 @@ namespace Kutip.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Schedule schedule)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                schedule.CreatedAt = DateTimeOffset.Now;
-                schedule.UpdatedAt = DateTimeOffset.Now;
-                _context.Schedules.Add(schedule);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
+                ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
+                ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+                return View(schedule);
             }
 
-            ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
-            ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
-            return View(schedule);
+            schedule.CreatedAt = DateTimeOffset.Now;
+            schedule.UpdatedAt = DateTimeOffset.Now;
+
+            _context.Schedules.Add(schedule);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         [Authorize(Roles = "Admin")]
@@ -82,8 +81,8 @@ namespace Kutip.Controllers
             var schedule = await _context.Schedules.FindAsync(id);
             if (schedule == null) return NotFound();
 
-            ViewData["BinId"] = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
-            ViewData["TruckId"] = new SelectList(_context.Trucks, "TruckId", "TruckNo", schedule.TruckId);
+            ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
+            ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             return View(schedule);
         }
@@ -95,27 +94,20 @@ namespace Kutip.Controllers
         {
             if (id != schedule.ScheduleId) return NotFound();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                schedule.UpdatedAt = DateTimeOffset.Now;
-                _context.Update(schedule);
-                await _context.SaveChangesAsync();
-
-                _context.Notifications.Add(new Notification
-                {
-                    Message = $"Schedule #{schedule.ScheduleId} updated at {DateTime.Now:f}"
-                });
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Schedule updated successfully!";
-                return RedirectToAction(nameof(Index));
+                ViewBag.BinId = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
+                ViewBag.TruckId = new SelectList(_context.Trucks, "TruckId", "TruckNo", schedule.TruckId);
+                ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+                return View(schedule);
             }
 
-            ViewBag.BinId = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
-            ViewBag.TruckId = new SelectList(_context.Trucks, "TruckId", "TruckNo", schedule.TruckId);
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+            schedule.UpdatedAt = DateTimeOffset.Now;
+            _context.Update(schedule);
+            await _context.SaveChangesAsync();
 
-            return View(schedule);
+            TempData["Success"] = "Schedule updated successfully!";
+            return RedirectToAction(nameof(Index));
         }
 
         [Authorize(Roles = "Admin")]
@@ -128,9 +120,7 @@ namespace Kutip.Controllers
                 .Include(s => s.Truck)
                 .FirstOrDefaultAsync(m => m.ScheduleId == id);
 
-            if (schedule == null) return NotFound();
-
-            return View(schedule);
+            return schedule == null ? NotFound() : View(schedule);
         }
 
         [Authorize(Roles = "Admin")]
@@ -138,33 +128,17 @@ namespace Kutip.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var schedule = await _context.Schedules
-                .Include(s => s.Truck)
-                .FirstOrDefaultAsync(s => s.ScheduleId == id);
-
+            var schedule = await _context.Schedules.FindAsync(id);
             if (schedule == null)
             {
                 TempData["Error"] = "Schedule not found.";
                 return RedirectToAction(nameof(Index));
             }
 
-            if (schedule.Truck != null)
-            {
-                schedule.Truck.Schedules?.Remove(schedule);
-            }
-
             _context.Schedules.Remove(schedule);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Schedule deleted successfully!";
-
-            _context.Notifications.Add(new Notification
-            {
-                Message = $"Schedule #{id} was deleted at {DateTime.Now:f}",
-                CreatedAt = DateTime.Now
-            });
-            await _context.SaveChangesAsync();
-
             return RedirectToAction(nameof(Index));
         }
 
@@ -190,18 +164,19 @@ namespace Kutip.Controllers
                 .Where(t => t.Status == TruckStatus.Active)
                 .ToListAsync();
 
-            const int KPI_LIMIT = 20;
+            const int KPI_LIMIT = 3;
+
             var availableTrucks = trucks
                 .Where(t => t.Schedules.Count < KPI_LIMIT)
                 .ToList();
 
-            ViewBag.CanSchedule = unscheduledBins.Any() && availableTrucks.Any();
-            ViewBag.Message = ViewBag.CanSchedule ? "✅ Smart scheduling can be done." : "⚠️ No bins or eligible trucks available for scheduling.";
             ViewBag.BinCount = unscheduledBins.Count;
             ViewBag.TruckCount = availableTrucks.Count;
+            ViewBag.CanSchedule = unscheduledBins.Any() && availableTrucks.Any();
 
             return View();
         }
+
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
@@ -220,125 +195,59 @@ namespace Kutip.Controllers
 
             var trucks = await _context.Trucks
                 .Include(t => t.Schedules.Where(s =>
-                    s.ScheduledDateTime >= weekStart && s.ScheduledDateTime < weekEnd))
+                    s.ScheduledDateTime >= weekStart &&
+                    s.ScheduledDateTime < weekEnd))
                 .Where(t => t.Status == TruckStatus.Active)
                 .ToListAsync();
 
-            const int KPI_LIMIT = 20;
-            const int MAX_WORK_DAYS = 3;
+            var assignedSchedules = new List<Schedule>();
 
-            var eligibleTrucks = trucks
-                .Where(t => t.Schedules.Count < KPI_LIMIT)
-                .ToList();
-
-            if (!bins.Any() || !eligibleTrucks.Any())
-            {
-                TempData["Error"] = "No bins or eligible trucks available for scheduling.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var allDays = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
-            var truckWorkDays = eligibleTrucks.ToDictionary(
-                truck => truck.TruckId,
-                truck => allDays.OrderBy(_ => Guid.NewGuid()).Take(MAX_WORK_DAYS).ToList()
-            );
-
-            int truckIndex = 0;
             foreach (var bin in bins)
             {
-                var truck = eligibleTrucks[truckIndex % eligibleTrucks.Count];
+                var nearestTruck = trucks
+                    .OrderBy(t => GetDistance(1.5584, 103.6371, bin.Latitude, bin.Longitude))
+                    .FirstOrDefault();
 
-                if (truck.Schedules.Count >= KPI_LIMIT || !truckWorkDays.ContainsKey(truck.TruckId))
-                {
-                    truckIndex++;
+                if (nearestTruck == null || nearestTruck.Schedules.Count >= 3)
                     continue;
-                }
 
-                var assignDay = truckWorkDays[truck.TruckId]
-                    .FirstOrDefault(d => !truck.Schedules.Any(s => s.ScheduledDateTime.Date == d.Date));
+                var availableDay = Enumerable.Range(0, 7)
+                    .Select(i => weekStart.AddDays(i))
+                    .FirstOrDefault(d => !nearestTruck.Schedules.Any(s => s.ScheduledDateTime.Date == d.Date));
 
-                if (assignDay == default)
-                {
-                    truckIndex++;
-                    continue;
-                }
+                if (availableDay == default) continue;
 
                 var schedule = new Schedule
                 {
                     BinId = bin.BinId,
-                    TruckId = truck.TruckId,
-                    ScheduledDateTime = assignDay.AddHours(8),
+                    TruckId = nearestTruck.TruckId,
+                    ScheduledDateTime = availableDay.AddHours(8),
                     Status = ScheduleStatus.Scheduled,
                     CreatedAt = DateTimeOffset.Now,
                     UpdatedAt = DateTimeOffset.Now
                 };
 
-                _context.Schedules.Add(schedule);
-                truck.Schedules.Add(schedule);
-                truckIndex++;
+                assignedSchedules.Add(schedule);
+                nearestTruck.Schedules.Add(schedule);
             }
 
+            _context.Schedules.AddRange(assignedSchedules);
             await _context.SaveChangesAsync();
 
-            _context.Notifications.Add(new Notification
-            {
-                Message = $"Auto scheduling done for week starting {weekStart:d}.",
-                CreatedAt = DateTime.Now
-            });
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Auto scheduling completed successfully!";
+            TempData["Success"] = $"{assignedSchedules.Count} bins auto-scheduled.";
             return RedirectToAction(nameof(Index));
         }
 
-        // ✅ Mark as Completed
-        [Authorize(Roles = "Admin,TruckDriver")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarkDone(int scheduleId)
+        private double GetDistance(double lat1, double lon1, double lat2, double lon2)
         {
-            var schedule = await _context.Schedules.FindAsync(scheduleId);
-            if (schedule == null) return NotFound();
-
-            if (schedule.Status == ScheduleStatus.Scheduled)
-            {
-                schedule.Status = ScheduleStatus.Completed;
-                schedule.UpdatedAt = DateTimeOffset.Now;
-                await _context.SaveChangesAsync();
-                TempData["Success"] = $"Schedule #{scheduleId} marked as Completed.";
-            }
-            else
-            {
-                TempData["Error"] = "Cannot mark schedule as Done because it is not in Scheduled status.";
-            }
-
-            return RedirectToAction("Index", "Bins");
-
-        }
-
-        // ❌ Mark as Missed
-        [Authorize(Roles = "Admin,TruckDriver")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReportIssue(int scheduleId, string issueType)
-        {
-            var schedule = await _context.Schedules.FindAsync(scheduleId);
-            if (schedule == null) return NotFound();
-
-            if (schedule.Status == ScheduleStatus.Scheduled)
-            {
-                schedule.Status = ScheduleStatus.Missed;
-                schedule.UpdatedAt = DateTimeOffset.Now;
-                await _context.SaveChangesAsync();
-                TempData["Success"] = $"Schedule #{scheduleId} marked as Missed due to issue: {issueType}";
-            }
-            else
-            {
-                TempData["Error"] = "Cannot report issue because schedule is not in Scheduled status.";
-            }
-
-            return RedirectToAction("Index", "Bins");
-
+            double R = 6371;
+            double dLat = Math.PI / 180 * (lat2 - lat1);
+            double dLon = Math.PI / 180 * (lon2 - lon1);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(Math.PI / 180 * lat1) * Math.Cos(Math.PI / 180 * lat2) *
+                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
         }
     }
 }
