@@ -120,5 +120,16 @@ namespace Kutip.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        public IActionResult Map2()
+        {
+            var trucks = _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .Where(t => t.Status == TruckStatus.Active) // optional filter
+                .ToList();
+
+            return View(trucks);
+        }
     }
 }

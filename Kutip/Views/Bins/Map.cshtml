@@ -44,15 +44,35 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>  contributors'
         }).addTo(map);
 
+        // Icons
+        const TAXI_ICON_URL = '/assets/img/truck.png';
+        const BIN_ICON_URL = '/assets/img/bin.png';
+        const BIN_COMPLETED_ICON_URL = '/assets/img/completed.png';
+
+        let taxiMarker = null;
+        let currentLocation = null;
+        let routingControl = null;
+
+        // Taxi Icon
         var taxiIcon = L.icon({
-            iconUrl: '@Url.Content("~/img/truck.png")',
-            iconSize: [70, 70]
+            iconUrl: TAXI_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
         });
 
-        var taxiMarker = null;
-        var currentLocation = null;
+        // Bin Icon (default)
+        var binIcon = L.icon({
+            iconUrl: BIN_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+        });
 
-        var routingControl = null;
+        // Completed Bin Icon
+        var completedBinIcon = L.icon({
+            iconUrl: BIN_COMPLETED_ICON_URL,
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+        });
 
         // --- GET USER LOCATION ---
         if (!navigator.geolocation) {
@@ -84,7 +104,7 @@
             const lng = position.coords.longitude;
             currentLocation = L.latLng(lat, lng);
             taxiMarker.setLatLng(currentLocation);
-            map.panTo(currentLocation);
+            //map.panTo(currentLocation);
         }
 
         // --- PLOT BINS FROM SERVER ---
@@ -92,22 +112,22 @@
         @foreach (var bin in Model)
         {
             <text>
-                                var binMarker@(bin.BinId) = L.marker([@bin.Latitude, @bin.Longitude])
-                                    .addTo(map)
-                                    .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
-                                    .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude));
+                        var binMarker_@bin.BinId = L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
+                            .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, '@bin.BinId'));
             </text>
         }
         }
 
-        // --- SHOW ROUTE TO BIN ---
-        function showRouteToBin(lat, lng) {
+        
+        function showRouteToBin(binLat, binLng, binId) {
             if (!currentLocation) {
                 alert("Current location not available yet.");
                 return;
             }
 
-            const destination = L.latLng(lat, lng);
+            const destination = L.latLng(binLat, binLng);
 
             if (routingControl) {
                 map.removeControl(routingControl);
@@ -115,17 +135,16 @@
 
             routingControl = L.Routing.control({
                 waypoints: [currentLocation, destination],
-                routeWhileDragging: false,
+                routeWhileDragging: false
             }).on("routesfound", function (e) {
-                const route = e.routes[0];
-                animateTaxi(route);
+                animateTaxi(e.routes[0], binId);
             });
 
             routingControl.addTo(map);
         }
 
-        // --- ANIMATE TAXI ---
-        function animateTaxi(route) {
+        // --- ANIMATE TAXI AND UPDATE BIN ICON ON ARRIVAL ---
+        function animateTaxi(route, binId) {
             const coords = route.coordinates;
             let index = 0;
 
@@ -136,8 +155,33 @@
                     index++;
                 } else {
                     clearInterval(interval);
+
+                    // Move truck to final bin location
+                    taxiMarker.setLatLng(coords[coords.length - 1]);
+
+                    // Update bin icon to 'completed' when animation ends
+                    updateBinIcon(binId);
                 }
             }, 100); // Adjust speed here
+        }
+
+        // --- UPDATE BIN ICON TO COMPLETED WHEN TRUCK ARRIVES ---
+        function updateBinIcon(binId) {
+            // Find the bin marker by ID
+            const binMarker = window["binMarker_" + binId];
+
+            if (binMarker) {
+                // Remove old popup
+                binMarker.unbindPopup();
+
+                // Change icon to 'completed'
+                binMarker.setIcon(completedBinIcon);
+
+                // Add new popup for completed bin
+                binMarker.bindPopup("Bin Completed").openPopup();
+            } else {
+                console.error(`Bin marker with ID ${binId} not found.`);
+            }
         }
     </script>
 </body>

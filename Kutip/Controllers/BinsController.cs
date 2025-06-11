@@ -145,8 +145,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,TruckDriver")]
-        // GET: Bins/Map
+        [Authorize(Roles = "TruckDriver")]
         public IActionResult Map()
         {
             List<Bin> bins = _context.Bin.ToList();
