@@ -2,6 +2,8 @@ using Kutip.Data;
 using Kutip.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore; // add this
+using Microsoft.AspNetCore.Hosting; // add this
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
+//chemi report
+//Inject env manually
+var env = app.Services.GetRequiredService<IWebHostEnvironment>();
+
+//Configure Rotativa (use wkhtmltopdf.exe from wwwroot/Rotativa)
+RotativaConfiguration.Setup(env.WebRootPath, "Rotativa");
 
 // Seed Roles and Admin user here:
 using (var scope = app.Services.CreateScope())

@@ -6,6 +6,8 @@ using Kutip.Data;
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
+using Rotativa.AspNetCore;
 
 namespace Kutip.Controllers
 {
@@ -20,83 +22,221 @@ namespace Kutip.Controllers
         }
 
         public IActionResult Index(
-            string cityFilter,
-            string stateFilter,
-            BinStatus? binStatusFilter,
-            string truckNoFilter,
-            TruckStatus? truckStatusFilter
-        )
+             string cityFilter,
+             string stateFilter,
+             BinStatus? binStatusFilter,
+             string truckNoFilter,
+             TruckStatus? truckStatusFilter
+)
         {
-            //var binsQuery = _context.Bin.AsQueryable();
+            var viewModel = new DashboardViewModel();
+
+            // Build Bin Query
             var binsQuery = _context.Bin.Include(b => b.Schedules).AsQueryable();
+            if (!string.IsNullOrEmpty(cityFilter)) binsQuery = binsQuery.Where(b => b.City == cityFilter);
+            if (!string.IsNullOrEmpty(stateFilter)) binsQuery = binsQuery.Where(b => b.State == stateFilter);
+            if (binStatusFilter.HasValue) binsQuery = binsQuery.Where(b => b.Status == binStatusFilter.Value);
+
+            var bins = binsQuery.ToList(); // Materialize once
+
+            // Build Truck Query
             var trucksQuery = _context.Trucks.AsQueryable();
-            //var binsWithSchedules = binsQuery.ToList();
+            if (!string.IsNullOrEmpty(truckNoFilter)) trucksQuery = trucksQuery.Where(t => t.TruckNo.Contains(truckNoFilter));
+            if (truckStatusFilter.HasValue) trucksQuery = trucksQuery.Where(t => t.Status == truckStatusFilter.Value);
 
+            var trucks = trucksQuery.ToList(); // Materialize once
 
+            //Get today truck assign
+            var today = DateTime.Today;
+            viewModel.TrucksAssignedToday = _context.Schedules
+                .Where(s => s.ScheduledDateTime.Date == today)
+                .Select(s => s.TruckId)
+                .Distinct()
+                .Count();
 
-            // Bin filters
-            if (!string.IsNullOrEmpty(cityFilter))
-                binsQuery = binsQuery.Where(b => b.City == cityFilter);
+            // Inject filtered lists into ViewModel
+            viewModel.Bins = bins;
+            viewModel.Trucks = trucks;
 
-            if (!string.IsNullOrEmpty(stateFilter))
-                binsQuery = binsQuery.Where(b => b.State == stateFilter);
-
-            if (binStatusFilter.HasValue)
-                binsQuery = binsQuery.Where(b => b.Status == binStatusFilter.Value);
-
-            // Truck filters
-            if (!string.IsNullOrEmpty(truckNoFilter))
-                trucksQuery = trucksQuery.Where(t => t.TruckNo.Contains(truckNoFilter));
-
-            if (truckStatusFilter.HasValue)
-                trucksQuery = trucksQuery.Where(t => t.Status == truckStatusFilter.Value);
-
-            var viewModel = new DashboardViewModel
-            {
-                Bins = binsQuery.ToList(),
-                Trucks = trucksQuery.ToList(),
-               
-
-            };
-
-            // *** New code starts here: filter bins to only those with latest schedule Completed ***
-            var binsCompleted = viewModel.Bins.Where(bin =>
-            {
-                var latestSchedule = bin.Schedules
+            // Get latest schedule for each bin
+            var scheduleLookup = bins.ToDictionary(
+                bin => bin.BinId,
+                bin => bin.Schedules
                     .OrderByDescending(s => s.ScheduledDateTime)
-                    .FirstOrDefault();
-                return latestSchedule != null && latestSchedule.Status == ScheduleStatus.Completed;
-            }).ToList();
+                    .FirstOrDefault()
+            );
+            viewModel.ScheduleLookup = scheduleLookup;
 
-            ViewBag.BinsCompleted = binsCompleted;
-            // *** New code ends here ***
+            // Get bins with any schedule scheduled for today
 
-            // Inject latest schedule info into ViewBag (linked by BinId)
-            var latestScheduleStatusByBinId = viewModel.Bins
-                .ToDictionary(
-                    bin => bin.BinId,
-                    bin => bin.Schedules
-                        .OrderByDescending(s => s.ScheduledDateTime)
-                        .FirstOrDefault()
-                );
+            viewModel.BinsScheduledToday = bins
+                .Where(bin =>
+                {
+                    var todaysSchedules = bin.Schedules
+                        .Where(s => s.ScheduledDateTime.Date == today)
+                        .ToList();
 
-            ViewBag.ScheduleLookup = latestScheduleStatusByBinId;
+                    return todaysSchedules != null && todaysSchedules.Count > 0;
+                })
+                .ToList();
 
-            // Dropdown data
-            ViewBag.AllCities = _context.Bin.Select(b => b.City).Distinct().ToList();
-            ViewBag.AllStates = _context.Bin.Select(b => b.State).Distinct().ToList();
-            ViewBag.AllBinStatuses = Enum.GetValues(typeof(BinStatus)).Cast<BinStatus>().ToList();
-            ViewBag.AllTruckStatuses = Enum.GetValues(typeof(TruckStatus)).Cast<TruckStatus>().ToList();
-            ViewBag.AllTruckNos = _context.Trucks.Select(t => t.TruckNo).Distinct().ToList();
 
-            // Selected filters
-            ViewBag.SelectedCity = cityFilter;
-            ViewBag.SelectedState = stateFilter;
-            ViewBag.SelectedBinStatus = binStatusFilter;
-            ViewBag.SelectedTruckNo = truckNoFilter;
-            ViewBag.SelectedTruckStatus = truckStatusFilter;
+            // Populate dropdown data
+            viewModel.AllCities = _context.Bin.Select(b => b.City).Distinct().ToList();
+            viewModel.AllStates = _context.Bin.Select(b => b.State).Distinct().ToList();
+            viewModel.AllBinStatuses = Enum.GetValues(typeof(BinStatus)).Cast<BinStatus>().ToList();
+            viewModel.AllTruckStatuses = Enum.GetValues(typeof(TruckStatus)).Cast<TruckStatus>().ToList();
+            viewModel.AllTruckNos = _context.Trucks.Select(t => t.TruckNo).Distinct().ToList();
+
+            // Set selected filters
+            viewModel.SelectedCity = cityFilter;
+            viewModel.SelectedState = stateFilter;
+            viewModel.SelectedBinStatus = binStatusFilter;
+            viewModel.SelectedTruckNo = truckNoFilter;
+            viewModel.SelectedTruckStatus = truckStatusFilter;
+
+            // Generate sample chart data (replace with real logic later)
+            var currentYear = DateTime.Now.Year;
+
+            // Count bins with Completed pickups per month
+            var completedPickupCounts = _context.Schedules
+                .Where(s => s.Status == ScheduleStatus.Completed &&
+                            s.ScheduledDateTime.Year == currentYear)
+                .GroupBy(s => s.ScheduledDateTime.Month)
+                .ToDictionary(g => g.Key, g => g.Select(s => s.BinId).Distinct().Count());
+
+            // Count unique trucks used in pickups per month
+            var truckUsageCounts = _context.Schedules
+                .Where(s => s.ScheduledDateTime.Year == currentYear)
+                .GroupBy(s => s.ScheduledDateTime.Month)
+                .ToDictionary(g => g.Key, g => g.Select(s => s.TruckId).Distinct().Count());
+
+            List<string> labels = new List<string>();
+            List<int> completedPickupData = new List<int>();
+            List<int> truckUsageData = new List<int>();
+
+            for (int month = 1; month <= 12; month++)
+            {
+                var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(month);
+                labels.Add(monthName);
+
+                completedPickupData.Add(completedPickupCounts.GetValueOrDefault(month, 0));
+                truckUsageData.Add(truckUsageCounts.GetValueOrDefault(month, 0));
+            }
+
+            viewModel.MonthLabels = labels.ToArray();
+            viewModel.MonthlyCompletedPickups = completedPickupData.ToArray();
+            viewModel.MonthlyTrucksUsedForPickups = truckUsageData.ToArray();
+
+            var sevenDaysAgo = today.AddDays(-6); // Last 7 days including today
+
+            // Get all completed pickups in the last 7 days
+            var dailyPickups = _context.Schedules
+                .Where(s => s.Status == ScheduleStatus.Completed &&
+                            s.ScheduledDateTime >= sevenDaysAgo &&
+                            s.ScheduledDateTime <= today)
+                .GroupBy(s => s.ScheduledDateTime.Date)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+
+            List<int> counts = new List<int>();
+
+            for (int i = 0; i < 7; i++)
+            {
+                var date = sevenDaysAgo.AddDays(i);
+                labels.Add(date.ToString("ddd")); // e.g., Mon, Tue...
+                counts.Add(dailyPickups.GetValueOrDefault(date.Date, 0));
+            }
+
+            viewModel.DailyLabels = labels.ToArray();
+            viewModel.DailyPickupCounts = counts.ToArray();
+            viewModel.PickupsLast7Days = counts.Sum();
 
             return View(viewModel);
         }
+
+        //////////////////////////////////////////////////////////////
+        /// REPORTING
+
+
+        ///Truck
+        public IActionResult TruckReportPreviewWrapper(TruckStatus? truckStatusFilter)
+        {
+            var trucks = _context.Trucks.AsQueryable();
+
+            if (truckStatusFilter.HasValue)
+            {
+                trucks = trucks.Where(t => t.Status == truckStatusFilter.Value);
+            }
+
+            ViewBag.SelectedTruckStatus = truckStatusFilter;
+            ViewBag.AllTruckStatuses = Enum.GetValues(typeof(TruckStatus)).Cast<TruckStatus>().ToList();
+
+            return View("TruckReport", trucks.ToList());
+        }
+
+        public IActionResult ExportTruckPDF(TruckStatus? truckStatusFilter)
+        {
+            var trucks = _context.Trucks.AsQueryable();
+
+            if (truckStatusFilter.HasValue)
+            {
+                trucks = trucks.Where(t => t.Status == truckStatusFilter.Value);
+            }
+
+            return new ViewAsPdf("TruckReport", trucks.ToList())
+            {
+                FileName = "TruckReport.pdf"
+            };
+        }
+
+        public IActionResult PreviewTruckReport()
+        {
+            return RedirectToAction("TruckReportPreviewWrapper", new { preview = true });
+        }
+        ///END TRUCK
+
+        ///BIN
+        public IActionResult BinReportPreviewWrapper(BinStatus? binStatusFilter, string preview)
+        {
+            var bins = _context.Bin.Include(b => b.Schedules).AsQueryable();
+
+            if (binStatusFilter.HasValue)
+            {
+                bins = bins.Where(b => b.Status == binStatusFilter.Value);
+            }
+
+            ViewBag.SelectedBinStatus = binStatusFilter;
+            ViewBag.AllBinStatuses = Enum.GetValues(typeof(BinStatus)).Cast<BinStatus>().ToList();
+            ViewBag.IsPreview = string.Equals(preview, "true", StringComparison.OrdinalIgnoreCase);
+
+            return View("BinReport", bins.ToList());
+        }
+
+
+        public IActionResult ExportBinPDF(BinStatus? binStatusFilter)
+        {
+            var bins = _context.Bin.Include(b => b.Schedules).AsQueryable();
+
+            if (binStatusFilter.HasValue)
+            {
+                bins = bins.Where(b => b.Status == binStatusFilter.Value);
+            }
+
+            return new ViewAsPdf("BinReport", bins.ToList())
+            {
+                FileName = "BinReport.pdf"
+            };
+        }
+
+        public IActionResult PreviewBinReport()
+        {
+            return RedirectToAction("BinReportPreviewWrapper", new { preview = true });
+        }
+
+        ///END BIN
+
+
+
     }
 }

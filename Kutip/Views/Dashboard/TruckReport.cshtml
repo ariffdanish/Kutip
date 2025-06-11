@@ -1,0 +1,95 @@
+﻿@model List<Kutip.Models.Truck>
+@{
+    Layout = null;
+    var isPreview = Context.Request.Query["preview"] == "true";
+    var selectedStatus = ViewBag.SelectedTruckStatus as TruckStatus?;
+    var statusList = ViewBag.AllTruckStatuses as List<TruckStatus>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Truck Report</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body class="bg-light">
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Truck Report</h2>
+            @if (isPreview)
+            {
+                var exportUrl = Url.Action("ExportTruckPDF", "Dashboard", new { truckStatusFilter = selectedStatus });
+                <a href="@exportUrl"
+                   target="_blank"
+                   class="text-decoration-none text-dark"
+                   data-bs-toggle="tooltip"
+                   title="Download PDF">
+                    <i class="bi bi-download fs-4"></i>
+                </a>
+            }
+
+        </div>
+
+        <div class="table-responsive">
+            @if (isPreview)
+{
+    <form method="get" asp-action="TruckReportPreviewWrapper" asp-controller="Dashboard" class="row mb-3">
+        <input type="hidden" name="preview" value="true" />
+        <div class="col-md-4">
+            <label for="truckStatusFilter" class="form-label">Filter by Truck Status</label>
+                        <select name="truckStatusFilter" id="truckStatusFilter" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- All --</option>
+                            @foreach (var status in statusList)
+                            {
+                                if (selectedStatus == status)
+                                {
+                                    @:
+                                    <option value="@status" selected>@status</option>
+                                }
+                                else
+                                {
+                                    @:
+                                    <option value="@status">@status</option>
+                                }
+                            }
+                        </select>
+        </div>
+    </form>
+}
+
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Truck No</th>
+                        <th>Status</th>
+                        <th>Driver Name</th>
+                        <th>Phone</th>
+                        <th>Company</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var truck in Model)
+                    {
+                        <tr>
+                            <td>@truck.TruckNo</td>
+                            <td>@truck.Status</td>
+                            <td>@truck.DriverName</td>
+                            <td>@truck.Phone</td>
+                            <td>@truck.Company</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
