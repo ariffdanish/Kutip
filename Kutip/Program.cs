@@ -1,4 +1,4 @@
-using Kutip.Data;
+﻿using Kutip.Data;
 using Kutip.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +60,7 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }
+
 }
 
 if (!app.Environment.IsDevelopment())

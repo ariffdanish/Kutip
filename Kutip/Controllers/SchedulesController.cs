@@ -1,11 +1,13 @@
 ﻿using Kutip.Data;
 using Kutip.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Kutip.Controllers
@@ -14,6 +16,7 @@ namespace Kutip.Controllers
     public class SchedulesController : Controller
     {
         private readonly ApplicationDbContext _context;
+
 
         public SchedulesController(ApplicationDbContext context)
         {
@@ -63,8 +66,28 @@ namespace Kutip.Controllers
             {
                 schedule.CreatedAt = DateTimeOffset.Now;
                 schedule.UpdatedAt = DateTimeOffset.Now;
+
+                var truck = await _context.Trucks.FindAsync(schedule.TruckId);
+
+                // ✅ Only assign DriverName if it's not already set
+                if (truck != null && string.IsNullOrEmpty(truck.DriverName))
+                {
+                    // Get the first available TruckDriver
+                    var driverEmail = await (from user in _context.Users
+                                             join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                                             join role in _context.Roles on userRole.RoleId equals role.Id
+                                             where role.Name == "TruckDriver"
+                                             select user.Email).FirstOrDefaultAsync();
+
+                    if (!string.IsNullOrEmpty(driverEmail))
+                    {
+                        truck.DriverName = driverEmail;
+                        _context.Trucks.Update(truck); // ✅ Persist the driver assignment
+                    }
+                }
+
                 _context.Schedules.Add(schedule);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // ✅ Save both truck + schedule
                 return RedirectToAction(nameof(Index));
             }
 
@@ -73,6 +96,10 @@ namespace Kutip.Controllers
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             return View(schedule);
         }
+
+
+
+
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
@@ -340,5 +367,62 @@ namespace Kutip.Controllers
             return RedirectToAction("Index", "Bins");
 
         }
+
+        [Authorize(Roles = "TruckDriver")]
+        public async Task<IActionResult> MySchedule()
+        {
+            var email = User.Identity.Name;
+            TempData["DebugEmail"] = email;
+
+
+            var truck = await _context.Trucks
+                .FirstOrDefaultAsync(t => t.DriverName != null && t.DriverName.ToLower() == email.ToLower());
+
+            if (truck == null)
+            {
+                TempData["Error"] = $"No truck assigned to you ({email}).";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var schedule = await _context.Schedules
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .Where(s => s.TruckId == truck.TruckId)
+                .Select(s => new
+                {
+                    s.ScheduledDateTime,
+                    BinId = s.Bin.BinNo,
+                    Location = s.Bin.Street + ", " + s.Bin.City + ", " + s.Bin.State + " " + s.Bin.PostCode,
+                    s.Bin.Latitude,
+                    s.Bin.Longitude,
+                    TruckPlate = s.Truck.TruckNo
+                })
+                .ToListAsync();
+
+            ViewBag.Schedule = schedule;
+            TempData["DebugEmail"] = email;
+            TempData["TruckDebug"] = truck?.TruckNo ?? "none";
+
+            var schedules = await _context.Schedules
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .Where(s => s.TruckId == truck.TruckId)
+                .Select(s => new
+                {
+                    s.ScheduledDateTime,
+                    BinId = s.Bin.BinNo,
+                    Location = s.Bin.Street + ", " + s.Bin.City + ", " + s.Bin.State + " " + s.Bin.PostCode,
+                    s.Bin.Latitude,
+                    s.Bin.Longitude,
+                    TruckPlate = s.Truck.TruckNo
+                })
+                .ToListAsync();
+
+            TempData["ScheduleCount"] = schedule.Count;
+
+            ViewBag.Schedule = schedule;
+            return View("TruckDriverSchedule");
+        }
+
     }
 }
