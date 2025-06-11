@@ -54,8 +54,6 @@ namespace Kutip.Controllers
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
-
-
             return View(new Schedule());
         }
 
