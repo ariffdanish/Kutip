@@ -213,7 +213,7 @@ namespace Kutip.Controllers
                 .Where(t => t.Status == TruckStatus.Active)
                 .ToListAsync();
 
-            const int KPI_LIMIT = 20;
+            const int KPI_LIMIT = 2;
             var availableTrucks = trucks
                 .Where(t => t.Schedules.Count < KPI_LIMIT)
                 .ToList();
@@ -234,21 +234,26 @@ namespace Kutip.Controllers
             var weekStart = today.AddDays(-(int)today.DayOfWeek);
             var weekEnd = weekStart.AddDays(7);
 
+            // ✅ Limit to 7 bins for testing
             var bins = await _context.Bin
                 .Where(b => !_context.Schedules
                     .Any(s => s.BinId == b.BinId &&
                               s.ScheduledDateTime >= weekStart &&
                               s.ScheduledDateTime < weekEnd))
+                .Take(7)
                 .ToListAsync();
 
+            // ✅ Limit to 3 trucks for testing
             var trucks = await _context.Trucks
                 .Include(t => t.Schedules.Where(s =>
-                    s.ScheduledDateTime >= weekStart && s.ScheduledDateTime < weekEnd))
+                    s.ScheduledDateTime >= weekStart &&
+                    s.ScheduledDateTime < weekEnd))
                 .Where(t => t.Status == TruckStatus.Active)
+                .Take(3)
                 .ToListAsync();
 
-            const int KPI_LIMIT = 20;
-            const int MAX_WORK_DAYS = 3;
+            const int KPI_LIMIT = 2;       // Limit per truck
+            const int MAX_WORK_DAYS = 3;   // Max work days per truck
 
             var eligibleTrucks = trucks
                 .Where(t => t.Schedules.Count < KPI_LIMIT)
@@ -266,39 +271,37 @@ namespace Kutip.Controllers
                 truck => allDays.OrderBy(_ => Guid.NewGuid()).Take(MAX_WORK_DAYS).ToList()
             );
 
-            int truckIndex = 0;
-            foreach (var bin in bins)
+            int binIndex = 0;
+            foreach (var truck in eligibleTrucks)
             {
-                var truck = eligibleTrucks[truckIndex % eligibleTrucks.Count];
+                var assignedDays = truckWorkDays[truck.TruckId];
 
-                if (truck.Schedules.Count >= KPI_LIMIT || !truckWorkDays.ContainsKey(truck.TruckId))
+                foreach (var day in assignedDays)
                 {
-                    truckIndex++;
-                    continue;
+                    if (truck.Schedules.Count >= KPI_LIMIT || binIndex >= bins.Count)
+                        break;
+
+                    if (truck.Schedules.Any(s => s.ScheduledDateTime.Date == day.Date))
+                        continue;
+
+                    var schedule = new Schedule
+                    {
+                        BinId = bins[binIndex].BinId,
+                        TruckId = truck.TruckId,
+                        ScheduledDateTime = day.AddHours(8),
+                        Status = ScheduleStatus.Scheduled,
+                        CreatedAt = DateTimeOffset.Now,
+                        UpdatedAt = DateTimeOffset.Now
+                    };
+
+                    _context.Schedules.Add(schedule);
+                    truck.Schedules.Add(schedule);
+
+                    binIndex++;
                 }
 
-                var assignDay = truckWorkDays[truck.TruckId]
-                    .FirstOrDefault(d => !truck.Schedules.Any(s => s.ScheduledDateTime.Date == d.Date));
-
-                if (assignDay == default)
-                {
-                    truckIndex++;
-                    continue;
-                }
-
-                var schedule = new Schedule
-                {
-                    BinId = bin.BinId,
-                    TruckId = truck.TruckId,
-                    ScheduledDateTime = assignDay.AddHours(8),
-                    Status = ScheduleStatus.Scheduled,
-                    CreatedAt = DateTimeOffset.Now,
-                    UpdatedAt = DateTimeOffset.Now
-                };
-
-                _context.Schedules.Add(schedule);
-                truck.Schedules.Add(schedule);
-                truckIndex++;
+                if (binIndex >= bins.Count)
+                    break;
             }
 
             await _context.SaveChangesAsync();
@@ -313,6 +316,7 @@ namespace Kutip.Controllers
             TempData["Success"] = "Auto scheduling completed successfully!";
             return RedirectToAction(nameof(Index));
         }
+
 
         // ✅ Mark as Completed
         [Authorize(Roles = "Admin,TruckDriver")]
