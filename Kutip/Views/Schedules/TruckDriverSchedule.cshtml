@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "My Schedule";
+    var scheduleList = ViewBag.Schedule as List<dynamic>;
+}
+@if (TempData["DebugEmail"] != null)
+{
+    <div class="alert alert-info">🔍 Checking schedules for: <strong>@TempData["DebugEmail"]</strong></div>
+}
+@if (TempData["TruckDebug"] != null)
+{
+    <div class="alert alert-info">🚚 Matched truck: <strong>@TempData["TruckDebug"]</strong></div>
+}
+@if (TempData["ScheduleCount"] != null)
+{
+    <div class="alert alert-info">📦 Schedules found: <strong>@TempData["ScheduleCount"]</strong></div>
+}
+
+<h2>My Pickup Schedule</h2>
+
+@if (scheduleList != null && scheduleList.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Bin ID</th>
+                <th>Location</th>
+                <th>Truck Plate</th>
+                <th>Route</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in scheduleList)
+            {
+                <tr>
+                    <td>@item.ScheduledDateTime.ToString("g")</td>
+                    <td>@item.BinId</td>
+                    <td>@item.Location</td>
+                    <td>@item.TruckPlate</td>
+                    <td>
+                        <a class="btn btn-sm btn-success"
+                           href="https://www.google.com/maps/dir/?api=1&destination=@item.Latitude,@item.Longitude"
+                           target="_blank">
+                            Navigate
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No schedules available for you.</div>
+}
