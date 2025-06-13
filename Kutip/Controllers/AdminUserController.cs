@@ -19,7 +19,6 @@ public class AdminUserController : Controller
         _roleManager = roleManager;
     }
 
-    // List of users + roles
     public async Task<IActionResult> Index()
     {
         var users = _userManager.Users.ToList();
@@ -34,7 +33,6 @@ public class AdminUserController : Controller
         return View(userWithRoles);
     }
 
-    // Show Create form
     public IActionResult Create()
     {
         var model = new CreateUserViewModel
@@ -46,7 +44,6 @@ public class AdminUserController : Controller
         return View(model);
     }
 
-    // Handle Create POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateUserViewModel model)
@@ -57,7 +54,7 @@ public class AdminUserController : Controller
             {
                 UserName = model.Email,
                 Email = model.Email,
-                EmailConfirmed = true // ✅ Mark email as confirmed
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -80,18 +77,16 @@ public class AdminUserController : Controller
         return View(model);
     }
 
-    // ✅ Show Edit form
     public async Task<IActionResult> Edit(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
-            return NotFound();
+        if (user == null) return NotFound();
 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var model = new CreateUserViewModel
         {
             Email = user.Email,
-            Role = currentRoles.FirstOrDefault() // assuming one role per user
+            Role = currentRoles.FirstOrDefault()
         };
 
         ViewBag.UserId = user.Id;
@@ -99,14 +94,12 @@ public class AdminUserController : Controller
         return View(model);
     }
 
-    // ✅ Handle Edit POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(string id, CreateUserViewModel model)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
-            return NotFound();
+        if (user == null) return NotFound();
 
         if (ModelState.IsValid)
         {
@@ -119,6 +112,20 @@ public class AdminUserController : Controller
                 foreach (var error in result.Errors)
                     ModelState.AddModelError("", error.Description);
                 return View(model);
+            }
+
+            // Change password if provided
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                // Remove old password (if exists) and add new one
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, model.Password);
+                if (!passwordResult.Succeeded)
+                {
+                    foreach (var error in passwordResult.Errors)
+                        ModelState.AddModelError("", error.Description);
+                    return View(model);
+                }
             }
 
             var currentRoles = await _userManager.GetRolesAsync(user);
@@ -137,6 +144,7 @@ public class AdminUserController : Controller
         ViewBag.Roles = new SelectList(_roleManager.Roles.Select(r => r.Name));
         return View(model);
     }
+
 
     public async Task<IActionResult> Delete(string id)
     {
