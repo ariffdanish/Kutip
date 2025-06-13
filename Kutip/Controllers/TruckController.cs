@@ -1,12 +1,11 @@
-﻿// TruckController.cs
-
-using Kutip.Models;
+﻿using Kutip.Models;
 using Kutip.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.RegularExpressions;
 
 namespace Kutip.Controllers
 {
@@ -24,42 +23,14 @@ namespace Kutip.Controllers
 
         public IActionResult Index()
         {
-            List<Truck> trucks = _context.Trucks.ToList();
+            var trucks = _context.Trucks.ToList();
             return View(trucks);
         }
 
         // GET: Truck/Create
         public async Task<IActionResult> Create()
         {
-            var truckDrivers = await _userManager.GetUsersInRoleAsync("TruckDriver");
-
-            var validNamePattern = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s'-]+$");
-
-            var driverList = truckDrivers
-                .Where(u =>
-                    !string.IsNullOrWhiteSpace(u.FirstName) &&
-                    !string.IsNullOrWhiteSpace(u.LastName) &&
-                    validNamePattern.IsMatch(u.FirstName + " " + u.LastName)
-                )
-                .Select(u => new SelectListItem
-                {
-                    Value = (u.FirstName + " " + u.LastName).Trim(),
-                    Text = u.FirstName + " " + u.LastName
-                })
-                .ToList();
-
-            // Fallback if no drivers available
-            if (!driverList.Any())
-            {
-                driverList.Add(new SelectListItem
-                {
-                    Value = "",
-                    Text = "No Truck Drivers Available",
-                    Disabled = true
-                });
-            }
-
-            ViewBag.TruckDrivers = driverList;
+            await LoadTruckDriversAsync();
             return View();
         }
 
@@ -78,47 +49,11 @@ namespace Kutip.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var truckDrivers = await _userManager.GetUsersInRoleAsync("TruckDriver");
-
-            var validNamePattern = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s'-]+$");
-
-            var driverList = truckDrivers
-                .Where(u =>
-                    !string.IsNullOrWhiteSpace(u.FirstName) &&
-                    !string.IsNullOrWhiteSpace(u.LastName) &&
-                    validNamePattern.IsMatch(u.FirstName + " " + u.LastName)
-                )
-                .Select(u => new SelectListItem
-                {
-                    Value = (u.FirstName + " " + u.LastName).Trim(),
-                    Text = u.FirstName + " " + u.LastName
-                })
-                .ToList();
-
-            if (!driverList.Any())
-            {
-                driverList.Add(new SelectListItem
-                {
-                    Value = "",
-                    Text = "No Truck Drivers Available",
-                    Disabled = true
-                });
-            }
-
-            ViewBag.TruckDrivers = driverList;
+            await LoadTruckDriversAsync();
             return View(truck);
         }
 
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.TruckId == id);
-            if (truck == null) return NotFound();
-
-            return View(truck);
-        }
-
+        // GET: Truck/Edit
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -126,9 +61,11 @@ namespace Kutip.Controllers
             var truck = await _context.Trucks.FindAsync(id);
             if (truck == null) return NotFound();
 
+            await LoadTruckDriversAsync();
             return View(truck);
         }
 
+        // POST: Truck/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Truck truck)
@@ -152,9 +89,23 @@ namespace Kutip.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            await LoadTruckDriversAsync();
             return View(truck);
         }
 
+        // GET: Truck/Details
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.TruckId == id);
+            if (truck == null) return NotFound();
+
+            return View(truck);
+        }
+
+        // GET: Truck/Delete
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -165,6 +116,7 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
+        // POST: Truck/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -178,6 +130,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Truck/Map2
         public IActionResult Map2()
         {
             var trucks = _context.Trucks
@@ -187,6 +140,38 @@ namespace Kutip.Controllers
                 .ToList();
 
             return View(trucks);
+        }
+
+        // Shared helper to load drivers into ViewBag
+        private async Task LoadTruckDriversAsync()
+        {
+            var truckDrivers = await _userManager.GetUsersInRoleAsync("TruckDriver");
+            var validNamePattern = new Regex(@"^[A-Za-z\s'-]+$");
+
+            var driverList = truckDrivers
+                .Where(u =>
+                    !string.IsNullOrWhiteSpace(u.FirstName) &&
+                    !string.IsNullOrWhiteSpace(u.LastName) &&
+                    validNamePattern.IsMatch($"{u.FirstName} {u.LastName}")
+                )
+                .Select(u => new SelectListItem
+                {
+                    Value = $"{u.FirstName} {u.LastName}",
+                    Text = $"{u.FirstName} {u.LastName}"
+                })
+                .ToList();
+
+            if (!driverList.Any())
+            {
+                driverList.Add(new SelectListItem
+                {
+                    Value = "",
+                    Text = "No Truck Drivers Available",
+                    Disabled = true
+                });
+            }
+
+            ViewBag.TruckDrivers = driverList;
         }
     }
 }
