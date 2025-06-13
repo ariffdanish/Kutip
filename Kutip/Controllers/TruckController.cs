@@ -1,9 +1,12 @@
-﻿using Kutip.Models;
+﻿// TruckController.cs
+
+using Kutip.Models;
 using Kutip.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Kutip.Controllers
 {
@@ -11,10 +14,12 @@ namespace Kutip.Controllers
     public class TruckController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TruckController(ApplicationDbContext context)
+        public TruckController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -24,15 +29,44 @@ namespace Kutip.Controllers
         }
 
         // GET: Truck/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var truckDrivers = await _userManager.GetUsersInRoleAsync("TruckDriver");
+
+            var validNamePattern = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s'-]+$");
+
+            var driverList = truckDrivers
+                .Where(u =>
+                    !string.IsNullOrWhiteSpace(u.FirstName) &&
+                    !string.IsNullOrWhiteSpace(u.LastName) &&
+                    validNamePattern.IsMatch(u.FirstName + " " + u.LastName)
+                )
+                .Select(u => new SelectListItem
+                {
+                    Value = (u.FirstName + " " + u.LastName).Trim(),
+                    Text = u.FirstName + " " + u.LastName
+                })
+                .ToList();
+
+            // Fallback if no drivers available
+            if (!driverList.Any())
+            {
+                driverList.Add(new SelectListItem
+                {
+                    Value = "",
+                    Text = "No Truck Drivers Available",
+                    Disabled = true
+                });
+            }
+
+            ViewBag.TruckDrivers = driverList;
             return View();
         }
 
         // POST: Truck/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Truck truck)
+        public async Task<IActionResult> Create(Truck truck)
         {
             if (ModelState.IsValid)
             {
@@ -40,13 +74,41 @@ namespace Kutip.Controllers
                 truck.UpdatedAt = DateTimeOffset.UtcNow;
 
                 _context.Trucks.Add(truck);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            var truckDrivers = await _userManager.GetUsersInRoleAsync("TruckDriver");
+
+            var validNamePattern = new System.Text.RegularExpressions.Regex(@"^[A-Za-z\s'-]+$");
+
+            var driverList = truckDrivers
+                .Where(u =>
+                    !string.IsNullOrWhiteSpace(u.FirstName) &&
+                    !string.IsNullOrWhiteSpace(u.LastName) &&
+                    validNamePattern.IsMatch(u.FirstName + " " + u.LastName)
+                )
+                .Select(u => new SelectListItem
+                {
+                    Value = (u.FirstName + " " + u.LastName).Trim(),
+                    Text = u.FirstName + " " + u.LastName
+                })
+                .ToList();
+
+            if (!driverList.Any())
+            {
+                driverList.Add(new SelectListItem
+                {
+                    Value = "",
+                    Text = "No Truck Drivers Available",
+                    Disabled = true
+                });
+            }
+
+            ViewBag.TruckDrivers = driverList;
             return View(truck);
         }
 
-        // GET: Truck/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -57,8 +119,6 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
-
-        // GET: Truck/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -69,7 +129,6 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
-        // POST: Truck/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Truck truck)
@@ -96,7 +155,6 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
-        // GET: Truck/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -107,7 +165,6 @@ namespace Kutip.Controllers
             return View(truck);
         }
 
-        // POST: Truck/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -126,7 +183,7 @@ namespace Kutip.Controllers
             var trucks = _context.Trucks
                 .Include(t => t.Schedules)
                     .ThenInclude(s => s.Bin)
-                .Where(t => t.Status == TruckStatus.Active) // optional filter
+                .Where(t => t.Status == TruckStatus.Active)
                 .ToList();
 
             return View(trucks);

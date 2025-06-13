@@ -5,7 +5,6 @@
 }
 
 <div class="container">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="my-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -49,7 +48,9 @@
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     <label asp-for="DriverName" class="form-label">Driver Name</label>
-                                    <input asp-for="DriverName" class="form-control" placeholder="Enter Driver Name" />
+                                    <select asp-for="DriverName" class="form-select" asp-items="ViewBag.TruckDrivers">
+                                        <option value="">Select Driver</option>
+                                    </select>
                                     <span asp-validation-for="DriverName" class="text-danger"></span>
                                 </div>
                                 <div class="col-md-4">
@@ -79,8 +80,8 @@
                                 </div>
                             </div>
                         </form>
-                    </div> <!-- card-body -->
-                </div> <!-- card -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
