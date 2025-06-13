@@ -56,7 +56,8 @@ public class AdminUserController : Controller
             var user = new ApplicationUser
             {
                 UserName = model.Email,
-                Email = model.Email
+                Email = model.Email,
+                EmailConfirmed = true // ✅ Mark email as confirmed
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
