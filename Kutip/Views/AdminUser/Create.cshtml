@@ -27,7 +27,11 @@
         <select asp-for="Role" class="form-control" asp-items="ViewBag.Roles"></select>
         <span asp-validation-for="Role" class="text-danger"></span>
     </div>
-    <button type="submit" class="btn btn-primary">Create</button>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-secondary ml-2">Back to List</a>
+    </div>
 </form>
 
 @section Scripts {
