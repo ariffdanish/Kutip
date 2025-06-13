@@ -115,7 +115,13 @@
                                 </a>
                             </li>
 
-                            <!-- Add more Admin-only menu items here -->
+                            <!-- ✅ New: User Management -->
+                            <li class="nav-item">
+                                <a asp-controller="AdminUser" asp-action="Index">
+                                    <i class="fas fa-users-cog"></i>
+                                    <span class="sub-item">User Management</span>
+                                </a>
+                            </li>
                         }
                         else if (isTruckDriver)
                         {
