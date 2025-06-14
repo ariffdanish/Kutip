@@ -32,7 +32,7 @@
                         <div class="table-responsive">
                             <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
                                 <thead>
-                                    <tr>
+                                    <tr class="text-center">
                                         <th>@Html.DisplayNameFor(model => model.BinNo)</th>
                                         <th>@Html.DisplayNameFor(model => model.Street)</th>
                                         <th>@Html.DisplayNameFor(model => model.City)</th>
@@ -44,7 +44,7 @@
                                 <tbody>
                                     @foreach (var item in Model)
                                     {
-                                        <tr>
+                                        <tr class="text-center">
                                             <td>@Html.DisplayFor(modelItem => item.BinNo)</td>
                                             <td>@Html.DisplayFor(modelItem => item.Street)</td>
                                             <td>@Html.DisplayFor(modelItem => item.City)</td>

@@ -25,14 +25,14 @@
                         <div class="table-responsive">
                             <table class="table table-bordered text-center">
                                 <thead class="table-light">
-                                    <tr>
+                                    <tr class="text-center">
                                         <th>Total Scheduled</th>
                                         <th>Bins Collected</th>
                                         <th>Missed Pickups</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
+                                    <tr class="text-center">
                                         <td class="fw-semibold">@Model.Count()</td>
                                         <td class="text-success fw-semibold">@Model.Count(s => s.Status == ScheduleStatus.Completed)</td>
                                         <td class="text-danger fw-semibold">@Model.Count(s => s.Status == ScheduleStatus.Missed)</td>
@@ -77,7 +77,7 @@
                         <div class="table-responsive">
                             <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
                                 <thead>
-                                    <tr>
+                                    <tr class="text-center">
                                         <th>@Html.DisplayNameFor(model => model.Bin.BinNo)</th>
                                         <th>@Html.DisplayNameFor(model => model.Bin.Street)</th>
                                         <th>@Html.DisplayNameFor(model => model.Truck.TruckNo)</th>
@@ -89,7 +89,7 @@
                                 <tbody>
                                     @foreach (var item in Model)
                                     {
-                                        <tr>
+                                        <tr class="text-center">
                                             <td>@item.Bin.BinNo</td>
                                             <td>@item.Bin.Street</td>
                                             <td>@item.Truck.TruckNo</td>
