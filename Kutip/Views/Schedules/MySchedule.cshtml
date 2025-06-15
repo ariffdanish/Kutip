@@ -27,9 +27,9 @@ else
             {
                 <tr>
                     <td>@schedule.Bin?.BinNo</td>
-                    <td>@($"{schedule.Bin?.Latitude}, {schedule.Bin?.Longitude}")</td>
-                    <td>@schedule.ScheduledDateTime.ToShortDateString()</td>
-                    <td>@schedule.ScheduledDateTime.ToString("dddd")</td>
+                    <td>@schedule.Bin?.Street</td>
+                    <td>@schedule.ScheduledDate.ToShortDateString()</td>
+                    <td>@schedule.ScheduledDate.ToString("dddd")</td>
                     <td>@schedule.Status</td>
                 </tr>
             }

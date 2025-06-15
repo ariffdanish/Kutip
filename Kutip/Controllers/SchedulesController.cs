@@ -66,7 +66,7 @@ namespace Kutip.Controllers
 
             // Get all schedules for this truck, ordered by date
             var schedules = truck.Schedules
-                .OrderBy(s => s.ScheduledDateTime)
+                .OrderBy(s => s.ScheduledDate)
                 .ToList();
 
             return View(schedules);
@@ -230,44 +230,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "TruckDriver")]
-        public async Task<IActionResult> MySchedule()
-        {
-            var email = User.Identity?.Name;
-
-            var truck = await _context.Trucks
-                .FirstOrDefaultAsync(t => t.DriverName != null && t.DriverName.ToLower() == email.ToLower());
-
-            if (truck == null)
-            {
-                TempData["Error"] = $"No truck assigned to you ({email}).";
-                return RedirectToAction("Index", "Home");
-            }
-
-            // ✅ Pull all necessary data first into memory
-            var rawSchedules = await _context.Schedules
-                .Where(s => s.TruckId == truck.TruckId)
-                .Include(s => s.Bin)
-                .Include(s => s.Truck)
-                .ToListAsync(); // Materialized BEFORE transformation
-
-            // ✅ Then project into your view model safely with .ToString()
-            var scheduleList = rawSchedules.Select(s => new TruckDriverScheduleViewModel
-            {
-                ScheduledDay = s.ScheduledDay.ToString(), // Safe: in-memory
-                BinId = s.Bin.BinNo,
-                Location = $"{s.Bin.Street}, {s.Bin.City}, {s.Bin.State} {s.Bin.PostCode}",
-                Latitude = s.Bin.Latitude,
-                Longitude = s.Bin.Longitude,
-                TruckId = s.Truck.TruckNo
-            }).ToList();
-
-            TempData["DebugEmail"] = email;
-            TempData["TruckDebug"] = truck.TruckNo;
-            TempData["ScheduleCount"] = scheduleList.Count;
-
-            return View("TruckDriverSchedule", scheduleList);
-        }
+       
 
     }
 }
