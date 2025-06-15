@@ -66,7 +66,7 @@ namespace Kutip.Controllers
 
             // Get all schedules for this truck, ordered by date
             var schedules = truck.Schedules
-                .OrderBy(s => s.ScheduledDateTime)
+                .OrderBy(s => s.ScheduledDate)
                 .ToList();
 
             return View(schedules);
@@ -230,7 +230,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "TruckDriver")]
+        /*[Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()
         {
             var email = User.Identity?.Name;
@@ -267,7 +267,7 @@ namespace Kutip.Controllers
             TempData["ScheduleCount"] = scheduleList.Count;
 
             return View("TruckDriverSchedule", scheduleList);
-        }
+        }*/
 
     }
 }
