@@ -25,7 +25,7 @@ namespace Kutip.Models
         [Display(Name = "Schedule Date")]
         public DateTime ScheduledDate { get; set; }
 
-        public string DisplayDriver { get; set; }
+       
 
         [Required]
         [Display(Name = "Status")]
