@@ -230,7 +230,7 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-<<<<<<< HEAD
+
         /*[Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()
         {
@@ -269,9 +269,7 @@ namespace Kutip.Controllers
 
             return View("TruckDriverSchedule", scheduleList);
         }*/
-=======
-       
->>>>>>> 070e9ce5c696d01324bcf24cc8bd8a963eab93c4
+      
 
     }
 }
