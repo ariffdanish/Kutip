@@ -7,7 +7,8 @@ namespace Kutip.Models
     public enum BinStatus
     {
         Active,
-        Inactive
+        Inactive,
+        Collected
     }
 
     public class Bin
