@@ -27,7 +27,11 @@ else
             {
                 <tr>
                     <td>@schedule.Bin?.BinNo</td>
+<<<<<<< HEAD
                     <td>@($"{schedule.Bin?.Latitude}, {schedule.Bin?.Longitude}")</td>
+=======
+                    <td>@schedule.Bin?.Street</td>
+>>>>>>> 070e9ce5c696d01324bcf24cc8bd8a963eab93c4
                     <td>@schedule.ScheduledDate.ToShortDateString()</td>
                     <td>@schedule.ScheduledDate.ToString("dddd")</td>
                     <td>@schedule.Status</td>
