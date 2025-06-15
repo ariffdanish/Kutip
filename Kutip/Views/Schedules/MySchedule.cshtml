@@ -1,0 +1,38 @@
+﻿@model IEnumerable<Kutip.Models.Schedule>
+
+@{
+    ViewData["Title"] = "My Schedule";
+}
+
+<h2>My Assigned Bins</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You have no scheduled bins for this week.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Bin Number</th>
+                <th>Location</th>
+                <th>Scheduled Date</th>
+                <th>Day of Week</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var schedule in Model)
+            {
+                <tr>
+                    <td>@schedule.Bin?.BinNo</td>
+                    <td>@($"{schedule.Bin?.Latitude}, {schedule.Bin?.Longitude}")</td>
+                    <td>@schedule.ScheduledDateTime.ToShortDateString()</td>
+                    <td>@schedule.ScheduledDateTime.ToString("dddd")</td>
+                    <td>@schedule.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

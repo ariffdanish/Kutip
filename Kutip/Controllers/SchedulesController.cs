@@ -1,12 +1,14 @@
 ﻿using Kutip.Data;
 using Kutip.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Kutip.Controllers
@@ -15,10 +17,12 @@ namespace Kutip.Controllers
     public class SchedulesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SchedulesController(ApplicationDbContext context)
+        public SchedulesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [Authorize(Roles = "Admin")]
@@ -28,6 +32,43 @@ namespace Kutip.Controllers
                 .Include(s => s.Bin)
                 .Include(s => s.Truck)
                 .ToListAsync();
+            return View(schedules);
+        }
+        [Authorize(Roles = "TruckDriver")]
+        public async Task<IActionResult> MySchedule()
+        {
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge(); // User not found or not logged in
+            }
+
+            // Extract the user's first and last name
+            var driverFirstName = user.FirstName;
+            var driverLastName = user.LastName;
+
+            // Concatenate FirstName and LastName with a space in between
+            var driverName = $"{driverFirstName} {driverLastName}";
+
+            // Find the truck where DriverName matches
+            var truck = await _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .FirstOrDefaultAsync(t =>
+                    t.DriverName == driverName);
+
+            if (truck == null)
+            {
+                TempData["Error"] = "You are not assigned to any truck.";
+                return View(new List<Schedule>());
+            }
+
+            // Get all schedules for this truck, ordered by date
+            var schedules = truck.Schedules
+                .OrderBy(s => s.ScheduledDateTime)
+                .ToList();
+
             return View(schedules);
         }
 
