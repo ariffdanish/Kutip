@@ -31,12 +31,11 @@
                         <div class="table-responsive">
                             <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
                                 <thead>
-                                    <tr>
+                                    <tr class="text-center">
                                         <th>@Html.DisplayNameFor(model => model.TruckNo)</th>
                                         <th>@Html.DisplayNameFor(model => model.DriverName)</th>
                                         <th>@Html.DisplayNameFor(model => model.Phone)</th>
                                         <th>@Html.DisplayNameFor(model => model.Company)</th>
-                                        <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
                                         <th>@Html.DisplayNameFor(model => model.Status)</th>
                                         <th>Actions</th>
                                     </tr>
@@ -44,12 +43,11 @@
                                 <tbody>
                                     @foreach (var item in Model)
                                     {
-                                        <tr>
+                                        <tr class="text-center">
                                             <td>@Html.DisplayFor(modelItem => item.TruckNo)</td>
                                             <td>@Html.DisplayFor(modelItem => item.DriverName)</td>
                                             <td>@Html.DisplayFor(modelItem => item.Phone)</td>
                                             <td>@Html.DisplayFor(modelItem => item.Company)</td>
-                                            <td>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                                             <td>
                                                 @{
                                                     var status = item.Status.ToString();

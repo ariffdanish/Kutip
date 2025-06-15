@@ -51,9 +51,12 @@
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     <label asp-for="DriverName" class="form-label">Driver Name</label>
-                                    <input asp-for="DriverName" class="form-control" placeholder="Enter Driver Name" />
+                                    <select asp-for="DriverName" class="form-select" asp-items="ViewBag.TruckDrivers">
+                                        <option value="">Select a Driver</option>
+                                    </select>
                                     <span asp-validation-for="DriverName" class="text-danger"></span>
                                 </div>
+
                                 <div class="col-md-4">
                                     <label asp-for="Phone" class="form-label">Phone Number</label>
                                     <input asp-for="Phone" class="form-control" placeholder="Enter Phone Number" />
