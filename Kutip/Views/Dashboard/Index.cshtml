@@ -428,8 +428,8 @@
                                     foreach (var bin in Model.BinsScheduledToday)
                                     {
                                         var todaysSchedule = bin.Schedules
-                                        .Where(s => s.ScheduledDateTime.Date == DateTime.Today)
-                                        .OrderByDescending(s => s.ScheduledDateTime)
+                                        .Where(s => s.ScheduledDay == (ScheduleDay)DateTime.Today.DayOfWeek)
+                                        .OrderByDescending(s => s.ScheduledDay)
                                         .FirstOrDefault();
 
                                         <tr>

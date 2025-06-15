@@ -64,8 +64,8 @@
                     @foreach (var s in Model)
                     {
                         <tr>
-                            <td>@s.ScheduledDateTime.ToString("yyyy-MM-dd")</td>
-                            <td>@s.ScheduledDateTime.ToString("HH:mm")</td>
+                            <td>@s.ScheduledDate.ToString("yyyy-MM-dd")</td>
+                            <td>@s.ScheduledDate.ToString("HH:mm")</td>
                             <td>@s.Truck?.TruckNo</td>
                             <td>@s.Truck?.DriverName</td>
                             <td>@s.Truck?.Phone</td>

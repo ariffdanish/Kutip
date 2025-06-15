@@ -49,7 +49,8 @@ namespace Kutip.Controllers
             //Get today truck assign
             var today = DateTime.Today;
             viewModel.TrucksAssignedToday = _context.Schedules
-                .Where(s => s.ScheduledDateTime.Date == today)
+                .AsEnumerable()
+                .Where(s => s.ScheduledDay == (ScheduleDay)DateTime.Today.DayOfWeek)
                 .Select(s => s.TruckId)
                 .Distinct()
                 .Count();
@@ -62,7 +63,7 @@ namespace Kutip.Controllers
             var scheduleLookup = bins.ToDictionary(
                 bin => bin.BinId,
                 bin => bin.Schedules
-                    .OrderByDescending(s => s.ScheduledDateTime)
+                    .OrderByDescending(s => s.ScheduledDay)
                     .FirstOrDefault()
             );
             viewModel.ScheduleLookup = scheduleLookup;
@@ -73,7 +74,7 @@ namespace Kutip.Controllers
                 .Where(bin =>
                 {
                     var todaysSchedules = bin.Schedules
-                        .Where(s => s.ScheduledDateTime.Date == today)
+                        .Where(s => s.ScheduledDay == (ScheduleDay)DateTime.Today.DayOfWeek)
                         .ToList();
 
                     return todaysSchedules != null && todaysSchedules.Count > 0;
@@ -101,14 +102,14 @@ namespace Kutip.Controllers
             // Count bins with Completed pickups per month
             var completedPickupCounts = _context.Schedules
                 .Where(s => s.Status == ScheduleStatus.Completed &&
-                            s.ScheduledDateTime.Year == currentYear)
-                .GroupBy(s => s.ScheduledDateTime.Month)
+                            s.ScheduledDate.Year == currentYear)
+                .GroupBy(s => s.ScheduledDate.Month)
                 .ToDictionary(g => g.Key, g => g.Select(s => s.BinId).Distinct().Count());
 
             // Count unique trucks used in pickups per month
             var truckUsageCounts = _context.Schedules
-                .Where(s => s.ScheduledDateTime.Year == currentYear)
-                .GroupBy(s => s.ScheduledDateTime.Month)
+                .Where(s => s.ScheduledDate.Year == currentYear)
+                .GroupBy(s => s.ScheduledDate.Month)
                 .ToDictionary(g => g.Key, g => g.Select(s => s.TruckId).Distinct().Count());
 
             List<string> labels = new List<string>();
@@ -133,9 +134,9 @@ namespace Kutip.Controllers
             // Get all completed pickups in the last 7 days
             var dailyPickups = _context.Schedules
                 .Where(s => s.Status == ScheduleStatus.Completed &&
-                            s.ScheduledDateTime >= sevenDaysAgo &&
-                            s.ScheduledDateTime <= today)
-                .GroupBy(s => s.ScheduledDateTime.Date)
+                            s.ScheduledDate >= sevenDaysAgo &&
+                            s.ScheduledDate <= today)
+                .GroupBy(s => s.ScheduledDate.Date)
                 .ToDictionary(g => g.Key, g => g.Count());
 
 
@@ -245,10 +246,10 @@ namespace Kutip.Controllers
                 .AsQueryable();
 
             if (startDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDateTime >= startDate.Value);
+                schedules = schedules.Where(s => s.ScheduledDate >= startDate.Value);
 
             if (endDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDateTime <= endDate.Value);
+                schedules = schedules.Where(s => s.ScheduledDate <= endDate.Value);
 
             //Include both Completed and Missed
             schedules = schedules.Where(s =>
@@ -270,10 +271,10 @@ namespace Kutip.Controllers
                 .AsQueryable();
 
             if (startDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDateTime >= startDate.Value);
+                schedules = schedules.Where(s => s.ScheduledDate >= startDate.Value);
 
             if (endDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDateTime <= endDate.Value);
+                schedules = schedules.Where(s => s.ScheduledDate <= endDate.Value);
 
             //Include both Completed and Missed
             schedules = schedules.Where(s =>

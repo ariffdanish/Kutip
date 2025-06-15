@@ -68,7 +68,7 @@
                                             <td>
                                                 @{
                                                     var latestSchedule = item.Schedules?
-                                                        .OrderByDescending(s => s.ScheduledDateTime)
+                                                        .OrderByDescending(s => s.ScheduledDay)
                                                         .FirstOrDefault();
 
                                                     string scheduleStatus = latestSchedule != null ? latestSchedule.Status.ToString() : "No Schedule";

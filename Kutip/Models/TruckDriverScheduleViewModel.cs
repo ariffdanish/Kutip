@@ -2,7 +2,7 @@
 {
     public class TruckDriverScheduleViewModel
     {
-        public DateTime ScheduledDateTime { get; set; }
+        public String ScheduledDay { get; set; }
         public string BinId { get; set; }
         public string Location { get; set; }
         public double Latitude { get; set; }

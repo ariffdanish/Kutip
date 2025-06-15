@@ -1,55 +1,75 @@
-﻿@{
-    ViewData["Title"] = "My Schedule";
-    var scheduleList = ViewBag.Schedule as List<dynamic>;
-}
-@if (TempData["DebugEmail"] != null)
-{
-    <div class="alert alert-info">🔍 Checking schedules for: <strong>@TempData["DebugEmail"]</strong></div>
-}
-@if (TempData["TruckDebug"] != null)
-{
-    <div class="alert alert-info">🚚 Matched truck: <strong>@TempData["TruckDebug"]</strong></div>
-}
-@if (TempData["ScheduleCount"] != null)
-{
-    <div class="alert alert-info">📦 Schedules found: <strong>@TempData["ScheduleCount"]</strong></div>
+﻿@model IEnumerable<Kutip.Models.TruckDriverScheduleViewModel>
+
+@{
+    ViewData["Title"] = "My Pickup Schedule";
 }
 
-<h2>My Pickup Schedule</h2>
+<div class="container mt-4">
 
-@if (scheduleList != null && scheduleList.Any())
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>Bin ID</th>
-                <th>Location</th>
-                <th>Truck Plate</th>
-                <th>Route</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in scheduleList)
-            {
-                <tr>
-                    <td>@item.ScheduledDateTime.ToString("dddd")</td>
-                    <td>@item.BinId</td>
-                    <td>@item.Location</td>
-                    <td>@item.TruckPlate</td>
-                    <td>
-                        <a class="btn btn-sm btn-success"
-                           href="https://www.google.com/maps/dir/?api=1&destination=@item.Latitude,@item.Longitude"
-                           target="_blank">
-                            Navigate
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <div class="alert alert-warning">No schedules available for you.</div>
-}
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold text-primary">
+            <i class="fas fa-calendar-check me-2"></i>My Pickup Schedule
+        </h2>
+    </div>
+
+    <!-- Debug Info Alerts -->
+    @if (TempData["DebugEmail"] != null)
+    {
+        <div class="alert alert-info"><strong>Email:</strong> @TempData["DebugEmail"]</div>
+    }
+    @if (TempData["TruckDebug"] != null)
+    {
+        <div class="alert alert-info"><strong>Assigned Truck:</strong> @TempData["TruckDebug"]</div>
+    }
+    @if (TempData["ScheduleCount"] != null)
+    {
+        <div class="alert alert-info"><strong>Total Schedules:</strong> @TempData["ScheduleCount"]</div>
+    }
+
+    <!-- Schedule Table -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Day</th>
+                                <th>Bin Number</th>
+                                <th>Location</th>
+                                <th>Truck Plate</th>
+                                <th>Route</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.ScheduledDay.ToString()</td>
+                                    <td>@item.BinId</td>
+                                    <td>@item.Location</td>
+                                    <td>@item.TruckId</td>
+                                    <td>
+                                        <a class="btn btn-success btn-sm"
+                                           href="https://www.google.com/maps/dir/?api=1&destination=@item.Latitude,@item.Longitude"
+                                           target="_blank" title="Navigate via Google Maps">
+                                            <i class="fas fa-map-marker-alt"></i> Navigate
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-circle me-2"></i>No schedules available for you.
+        </div>
+    }
+</div>

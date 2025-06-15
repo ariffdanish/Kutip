@@ -69,10 +69,11 @@
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label asp-for="ScheduledDateTime" class="form-label">Scheduled Date & Time</label>
-                                    <input asp-for="ScheduledDateTime" class="form-control" type="datetime-local"
-                                           value="@Model.ScheduledDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-                                    <span asp-validation-for="ScheduledDateTime" class="text-danger"></span>
+                                    <label asp-for="ScheduledDay" class="form-label">Scheduled Day</label>
+                                    <select asp-for="ScheduledDay" class="form-select" asp-items="ViewBag.ScheduledDay">
+                                        <option value="">-- Select Day --</option>
+                                    </select>
+                                    <span asp-validation-for="ScheduledDay" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-6">

@@ -18,8 +18,13 @@ namespace Kutip.Models
         public int TruckId { get; set; }
 
         [Required]
-        [Display(Name = "Time")]
-        public DateTime ScheduledDateTime { get; set; }
+        [Display(Name = "Day")]
+        [EnumDataType(typeof(ScheduleDay))]
+        public ScheduleDay ScheduledDay { get; set; }
+
+        [Display(Name = "Schedule Date")]
+        public DateTime ScheduledDate { get; set; }
+
 
         [Required]
         [Display(Name = "Status")]
@@ -43,5 +48,16 @@ namespace Kutip.Models
         Completed,
         Missed,
         Reassigned
+    }
+
+    public enum ScheduleDay
+    {
+        Monday,
+        Tuesday,
+        Wednesday,
+        Thursday,
+        Friday,
+        Saturday,
+        Sunday
     }
 }

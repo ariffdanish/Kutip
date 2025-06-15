@@ -78,11 +78,11 @@
                             <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
                                 <thead>
                                     <tr class="text-center">
-                                        <th>@Html.DisplayNameFor(model => model.Bin.BinNo)</th>
-                                        <th>@Html.DisplayNameFor(model => model.Bin.Street)</th>
-                                        <th>@Html.DisplayNameFor(model => model.Truck.TruckNo)</th>
-                                        <th>@Html.DisplayNameFor(model => model.ScheduledDateTime)</th>
-                                        <th>@Html.DisplayNameFor(model => model.Status)</th>
+                                        <th>Bin No</th>
+                                        <th>Street</th>
+                                        <th>Truck No</th>
+                                        <th>Scheduled Day</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -93,7 +93,7 @@
                                             <td>@item.Bin.BinNo</td>
                                             <td>@item.Bin.Street</td>
                                             <td>@item.Truck.TruckNo</td>
-                                            <td>@item.ScheduledDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@item.ScheduledDay.ToString()</td> <!-- ✅ Replaced datetime with day -->
                                             <td>
                                                 @{
                                                     var statusClass = item.Status switch

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -49,6 +50,7 @@ namespace Kutip.Controllers
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
+            ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)));
             return View(new Schedule());
         }
 
@@ -62,6 +64,7 @@ namespace Kutip.Controllers
                 ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
                 ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
                 ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+                ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
                 return View(schedule);
             }
 
@@ -84,6 +87,7 @@ namespace Kutip.Controllers
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
             ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+            ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
             return View(schedule);
         }
 
@@ -99,6 +103,7 @@ namespace Kutip.Controllers
                 ViewBag.BinId = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
                 ViewBag.TruckId = new SelectList(_context.Trucks, "TruckId", "TruckNo", schedule.TruckId);
                 ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
+                ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
                 return View(schedule);
             }
 
@@ -142,112 +147,86 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpGet]
-        public async Task<IActionResult> AutoSchedule()
-        {
-            var today = DateTime.Today;
-            var weekStart = today.AddDays(-(int)today.DayOfWeek);
-            var weekEnd = weekStart.AddDays(7);
-
-            var unscheduledBins = await _context.Bin
-                .Where(b => !_context.Schedules.Any(s =>
-                    s.BinId == b.BinId &&
-                    s.ScheduledDateTime >= weekStart &&
-                    s.ScheduledDateTime < weekEnd))
-                .ToListAsync();
-
-            var trucks = await _context.Trucks
-                .Include(t => t.Schedules.Where(s =>
-                    s.ScheduledDateTime >= weekStart &&
-                    s.ScheduledDateTime < weekEnd))
-                .Where(t => t.Status == TruckStatus.Active)
-                .ToListAsync();
-
-            const int KPI_LIMIT = 3;
-
-            var availableTrucks = trucks
-                .Where(t => t.Schedules.Count < KPI_LIMIT)
-                .ToList();
-
-            ViewBag.BinCount = unscheduledBins.Count;
-            ViewBag.TruckCount = availableTrucks.Count;
-            ViewBag.CanSchedule = unscheduledBins.Any() && availableTrucks.Any();
-
-            return View();
-        }
-
-
+        // POST: AutoScheduleConfirmed
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AutoScheduleConfirmed()
         {
-            var today = DateTime.Today;
-            var weekStart = today.AddDays(-(int)today.DayOfWeek);
-            var weekEnd = weekStart.AddDays(7);
-
-            var bins = await _context.Bin
-                .Where(b => !_context.Schedules
-                    .Any(s => s.BinId == b.BinId &&
-                              s.ScheduledDateTime >= weekStart &&
-                              s.ScheduledDateTime < weekEnd))
-                .ToListAsync();
-
+            var bins = await _context.Bin.ToListAsync();
             var trucks = await _context.Trucks
-                .Include(t => t.Schedules.Where(s =>
-                    s.ScheduledDateTime >= weekStart &&
-                    s.ScheduledDateTime < weekEnd))
+                .Include(t => t.Schedules)
                 .Where(t => t.Status == TruckStatus.Active)
                 .ToListAsync();
 
             var assignedSchedules = new List<Schedule>();
+            var days = Enum.GetValues(typeof(ScheduleDay)).Cast<ScheduleDay>().ToList();
 
+            int dayIndex = 0;
             foreach (var bin in bins)
             {
-                var nearestTruck = trucks
-                    .OrderBy(t => GetDistance(1.5584, 103.6371, bin.Latitude, bin.Longitude))
-                    .FirstOrDefault();
-
-                if (nearestTruck == null || nearestTruck.Schedules.Count >= 3)
-                    continue;
-
-                var availableDay = Enumerable.Range(0, 7)
-                    .Select(i => weekStart.AddDays(i))
-                    .FirstOrDefault(d => !nearestTruck.Schedules.Any(s => s.ScheduledDateTime.Date == d.Date));
-
-                if (availableDay == default) continue;
+                var truck = trucks.OrderBy(t => t.Schedules.Count).FirstOrDefault();
+                if (truck == null) continue;
 
                 var schedule = new Schedule
                 {
                     BinId = bin.BinId,
-                    TruckId = nearestTruck.TruckId,
-                    ScheduledDateTime = availableDay.AddHours(8),
+                    TruckId = truck.TruckId,
+                    ScheduledDay = days[dayIndex % days.Count],
                     Status = ScheduleStatus.Scheduled,
                     CreatedAt = DateTimeOffset.Now,
                     UpdatedAt = DateTimeOffset.Now
                 };
 
                 assignedSchedules.Add(schedule);
-                nearestTruck.Schedules.Add(schedule);
+                truck.Schedules.Add(schedule);
+                dayIndex++;
             }
 
             _context.Schedules.AddRange(assignedSchedules);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"{assignedSchedules.Count} bins auto-scheduled.";
+            TempData["Success"] = $"{assignedSchedules.Count} bins scheduled.";
             return RedirectToAction(nameof(Index));
         }
 
-        private double GetDistance(double lat1, double lon1, double lat2, double lon2)
+        [Authorize(Roles = "TruckDriver")]
+        public async Task<IActionResult> MySchedule()
         {
-            double R = 6371;
-            double dLat = Math.PI / 180 * (lat2 - lat1);
-            double dLon = Math.PI / 180 * (lon2 - lon1);
-            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                       Math.Cos(Math.PI / 180 * lat1) * Math.Cos(Math.PI / 180 * lat2) *
-                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return R * c;
+            var email = User.Identity?.Name;
+
+            var truck = await _context.Trucks
+                .FirstOrDefaultAsync(t => t.DriverName != null && t.DriverName.ToLower() == email.ToLower());
+
+            if (truck == null)
+            {
+                TempData["Error"] = $"No truck assigned to you ({email}).";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // ✅ Pull all necessary data first into memory
+            var rawSchedules = await _context.Schedules
+                .Where(s => s.TruckId == truck.TruckId)
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .ToListAsync(); // Materialized BEFORE transformation
+
+            // ✅ Then project into your view model safely with .ToString()
+            var scheduleList = rawSchedules.Select(s => new TruckDriverScheduleViewModel
+            {
+                ScheduledDay = s.ScheduledDay.ToString(), // Safe: in-memory
+                BinId = s.Bin.BinNo,
+                Location = $"{s.Bin.Street}, {s.Bin.City}, {s.Bin.State} {s.Bin.PostCode}",
+                Latitude = s.Bin.Latitude,
+                Longitude = s.Bin.Longitude,
+                TruckId = s.Truck.TruckNo
+            }).ToList();
+
+            TempData["DebugEmail"] = email;
+            TempData["TruckDebug"] = truck.TruckNo;
+            TempData["ScheduleCount"] = scheduleList.Count;
+
+            return View("TruckDriverSchedule", scheduleList);
         }
+
     }
 }

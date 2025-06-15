@@ -49,8 +49,8 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><i class="far fa-clock"></i> Scheduled Time</th>
-                        <td>@Model.ScheduledDateTime.ToString("dddd")</td>
+                        <th><i class="far fa-clock"></i> Scheduled Day</th>
+                        <td>@Model.ScheduledDay.ToString()</td> <!-- ✅ changed from datetime to day enum -->
                     </tr>
                     <tr>
                         <th><i class="fas fa-tasks"></i> Status</th>
@@ -58,11 +58,11 @@
                     </tr>
                     <tr>
                         <th><i class="fas fa-calendar-plus"></i> Created</th>
-                        <td>@Model.CreatedAt.ToString("dddd")</td>
+                        <td>@Model.CreatedAt.ToString("dddd, dd MMM yyyy")</td>
                     </tr>
                     <tr>
                         <th><i class="fas fa-calendar-alt"></i> Updated</th>
-                        <td>@Model.UpdatedAt.ToString("dddd")</td>
+                        <td>@Model.UpdatedAt.ToString("dddd, dd MMM yyyy")</td>
                     </tr>
                 </tbody>
             </table>
