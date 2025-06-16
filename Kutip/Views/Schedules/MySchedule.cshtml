@@ -14,10 +14,8 @@
             <tr>
                 <th>Bin Number</th>
                 <th>Location</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Street</th>
-                <th>Scheduled Day</th>
+                <th>Scheduled Date</th>
+                <th>Day of Week</th>
                 <th>Status</th>
                 <th>Last Updated</th>
                 <th>Route</th>
@@ -26,42 +24,12 @@
         <tbody>
             @if (Model != null && Model.Any())
             {
-                foreach (var schedule in Model)
-                {
-                    <tr>
-                        <td>@schedule.Bin?.BinNo</td>
-                        <td>@($"{schedule.Bin?.Street}, {schedule.Bin?.City}, {schedule.Bin?.State} {schedule.Bin?.PostCode}")</td>
-                        <td>@schedule.Bin?.Latitude</td>
-                        <td>@schedule.Bin?.Longitude</td>
-                        <td>@schedule.Bin?.Street</td>
-                        <td>@schedule.ScheduledDay.ToString()</td>
-                        <td>
-                            @{
-                                var badgeClass = schedule.Status switch
-                                {
-                                    Kutip.Models.ScheduleStatus.Completed => "badge bg-success",
-                                    Kutip.Models.ScheduleStatus.Missed => "badge bg-danger",
-                                    Kutip.Models.ScheduleStatus.Reassigned => "badge bg-info",
-                                    _ => "badge bg-warning"
-                                };
-                            }
-                            <span class="@badgeClass">@schedule.Status</span>
-                        </td>
-                        <td>@schedule.UpdatedAt.ToString("dd/MM/yyyy hh:mm tt")</td>
-                        <td>
-                            <a class="btn btn-outline-success btn-sm"
-                               href="https://www.google.com/maps/dir/?api=1&destination=@schedule.Bin?.Latitude,@schedule.Bin?.Longitude"
-                               target="_blank">
-                                <i class="fas fa-location-arrow"></i> Navigate
-                            </a>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
                 <tr>
-                    <td colspan="9" class="text-muted">No schedules available.</td>
+                    <td>@schedule.Bin?.BinNo</td>
+                    <td>@schedule.Bin?.Street</td>
+                    <td>@schedule.ScheduledDate.ToShortDateString()</td>
+                    <td>@schedule.ScheduledDate.ToString("dddd")</td>
+                    <td>@schedule.Status</td>
                 </tr>
             }
         </tbody>

@@ -103,19 +103,29 @@
                 taxiMarker = L.marker(currentLocation, { icon: taxiIcon }).addTo(map);
             }
 
-            plotBins();
+            fetchAssignedBins();
         }
 
-        function plotBins() {
-        @foreach (var bin in Model)
-        {
-            <text>
-                        var binMarker_@bin.BinId = L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
-                            .addTo(map)
-                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`)
-                            .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, '@bin.BinId'));
-            </text>
+        function fetchAssignedBins() {
+            $.ajax({
+                url: '@Url.Action("GetAssignedBins", "Schedules")',
+                type: 'GET',
+                success: function (data) {
+                    plotBins(data);
+                },
+                error: function () {
+                    alert("Failed to load assigned bins.");
+                }
+            });
         }
+
+        function plotBins(bins) {
+            bins.forEach(bin => {
+                var binMarker = L.marker([bin.Latitude, bin.Longitude], { icon: binIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>${bin.BinNo}</b><br>${bin.Street}, ${bin.City}`)
+                    .on('click', () => showRouteToBin(bin.Latitude, bin.Longitude, bin.BinId));
+            });
         }
 
         function showRouteToBin(binLat, binLng, binId) {

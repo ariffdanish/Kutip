@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -189,8 +190,25 @@ namespace Kutip.Controllers
             TempData["Success"] = "Schedule deleted successfully!";
             return RedirectToAction(nameof(Index));
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> AutoSchedule()
+        {
+            var unscheduledBins = await _context.Bin
+                .Where(b => !_context.Schedules.Any(s => s.BinId == b.BinId))
+                .ToListAsync();
 
-        // POST: AutoScheduleConfirmed
+            var trucks = await _context.Trucks
+                .Where(t => t.Status == TruckStatus.Active)
+                .ToListAsync();
+
+            ViewBag.BinCount = unscheduledBins.Count;
+            ViewBag.TruckCount = trucks.Count;
+            ViewBag.CanSchedule = unscheduledBins.Any() && trucks.Any();
+
+            return View();
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AutoScheduleConfirmed()
@@ -201,77 +219,102 @@ namespace Kutip.Controllers
                 .Where(t => t.Status == TruckStatus.Active)
                 .ToListAsync();
 
-            var assignedSchedules = new List<Schedule>();
-            var days = Enum.GetValues(typeof(ScheduleDay)).Cast<ScheduleDay>().ToList();
-
-            int dayIndex = 0;
-            foreach (var bin in bins)
+            if (!trucks.Any())
             {
-                var truck = trucks.OrderBy(t => t.Schedules.Count).FirstOrDefault();
-                if (truck == null) continue;
+                TempData["Error"] = "No active trucks available.";
+                return RedirectToAction(nameof(Index));
+            }
 
-                var schedule = new Schedule
+            var assignedSchedules = new List<Schedule>();
+            var allDays = Enum.GetValues(typeof(ScheduleDay)).Cast<ScheduleDay>().ToList();
+            var random = new Random();
+
+            // Step 1: Assign bins fairly among trucks
+            int totalBins = bins.Count;
+            int truckCount = trucks.Count;
+
+            // Calculate base assignments + extras
+            int binsPerTruck = totalBins / truckCount;
+            int extraBins = totalBins % truckCount;
+
+            var truckBinAssignments = new Dictionary<Truck, List<Bin>>();
+
+            // Shuffle trucks to randomize who gets the extra bins
+            var shuffledTrucks = trucks.OrderBy(t => random.Next()).ToList();
+
+            foreach (var truck in shuffledTrucks)
+            {
+                int binCount = binsPerTruck + (extraBins > 0 ? 1 : 0);
+                truckBinAssignments[truck] = new List<Bin>();
+
+                for (int i = 0; i < binCount && bins.Count > 0; i++)
                 {
-                    BinId = bin.BinId,
-                    TruckId = truck.TruckId,
-                    ScheduledDay = days[dayIndex % days.Count],
-                    Status = ScheduleStatus.Scheduled,
-                    CreatedAt = DateTimeOffset.Now,
-                    UpdatedAt = DateTimeOffset.Now
-                };
+                    var selectedBin = bins[random.Next(bins.Count)];
+                    truckBinAssignments[truck].Add(selectedBin);
+                    bins.Remove(selectedBin);
+                }
 
-                assignedSchedules.Add(schedule);
-                truck.Schedules.Add(schedule);
-                dayIndex++;
+                if (extraBins > 0) extraBins--;
+            }
+
+            // Step 2: For each assigned bin, assign 3 non-consecutive days per bin
+            foreach (var truck in truckBinAssignments.Keys)
+            {
+                var binsForTruck = truckBinAssignments[truck];
+
+                foreach (var bin in binsForTruck)
+                {
+                    var selectedDays = new HashSet<ScheduleDay>();
+
+                    while (selectedDays.Count < 3)
+                    {
+                        var candidateDay = allDays[random.Next(allDays.Count)];
+
+                        bool hasGap = true;
+                        foreach (var existingDay in selectedDays)
+                        {
+                            int existingIndex = allDays.IndexOf(existingDay);
+                            int candidateIndex = allDays.IndexOf(candidateDay);
+
+                            if (Math.Abs(existingIndex - candidateIndex) <= 1)
+                            {
+                                hasGap = false;
+                                break;
+                            }
+                        }
+
+                        if (hasGap)
+                        {
+                            selectedDays.Add(candidateDay);
+                        }
+                    }
+
+                    foreach (var day in selectedDays)
+                    {
+                        var schedule = new Schedule
+                        {
+                            BinId = bin.BinId,
+                            TruckId = truck.TruckId,
+                            ScheduledDay = day,
+                            Status = ScheduleStatus.Scheduled,
+                            CreatedAt = DateTimeOffset.Now,
+                            UpdatedAt = DateTimeOffset.Now
+                        };
+
+                        assignedSchedules.Add(schedule);
+                        truck.Schedules.Add(schedule);
+                    }
+                }
             }
 
             _context.Schedules.AddRange(assignedSchedules);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"{assignedSchedules.Count} bins scheduled.";
+            TempData["Success"] = $"{assignedSchedules.Count} schedules created across {truckCount} trucks (3 days per bin).";
             return RedirectToAction(nameof(Index));
         }
 
-
-        /*[Authorize(Roles = "TruckDriver")]
-        public async Task<IActionResult> MySchedule()
-        {
-            var email = User.Identity?.Name;
-
-            var truck = await _context.Trucks
-                .FirstOrDefaultAsync(t => t.DriverName != null && t.DriverName.ToLower() == email.ToLower());
-
-            if (truck == null)
-            {
-                TempData["Error"] = $"No truck assigned to you ({email}).";
-                return RedirectToAction("Index", "Home");
-            }
-
-            // ✅ Pull all necessary data first into memory
-            var rawSchedules = await _context.Schedules
-                .Where(s => s.TruckId == truck.TruckId)
-                .Include(s => s.Bin)
-                .Include(s => s.Truck)
-                .ToListAsync(); // Materialized BEFORE transformation
-
-            // ✅ Then project into your view model safely with .ToString()
-            var scheduleList = rawSchedules.Select(s => new TruckDriverScheduleViewModel
-            {
-                ScheduledDay = s.ScheduledDay.ToString(), // Safe: in-memory
-                BinId = s.Bin.BinNo,
-                Location = $"{s.Bin.Street}, {s.Bin.City}, {s.Bin.State} {s.Bin.PostCode}",
-                Latitude = s.Bin.Latitude,
-                Longitude = s.Bin.Longitude,
-                TruckId = s.Truck.TruckNo
-            }).ToList();
-
-            TempData["DebugEmail"] = email;
-            TempData["TruckDebug"] = truck.TruckNo;
-            TempData["ScheduleCount"] = scheduleList.Count;
-
-            return View("TruckDriverSchedule", scheduleList);
-        }*/
-      
+       
 
     }
 }

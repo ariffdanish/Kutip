@@ -1,6 +1,7 @@
 ﻿using Kutip.Data;
 using Kutip.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
@@ -13,11 +14,13 @@ namespace Kutip.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public BinsController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public BinsController(ApplicationDbContext context, IWebHostEnvironment environment, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _environment = environment;
+            _userManager = userManager;
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
@@ -133,12 +136,54 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,TruckDriver")]
-        public IActionResult Map()
+        [Authorize]
+        public async Task<IActionResult> Map()
         {
-            var bins = _context.Bin.ToList();
-            ViewBag.UserRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
-            return View(bins);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge(); // Not logged in or invalid user
+            }
+
+            var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
+            ViewBag.UserRole = userRole;
+
+            if (userRole == "Admin")
+            {
+                // Admin sees all bins
+                var allBins = _context.Bin.ToList();
+                return View(allBins);
+            }
+            else
+            {
+                // TruckDriver: find their truck and get assigned bins
+                
+                var driverFirstName = user.FirstName;
+                var driverLastName = user.LastName;
+
+                // Concatenate FirstName and LastName with a space in between
+                var driverName = $"{driverFirstName} {driverLastName}";
+
+                // Find the truck where DriverName matches
+                var truck = await _context.Trucks
+                    .Include(t => t.Schedules)
+                        .ThenInclude(s => s.Bin)
+                        .FirstOrDefaultAsync(t => t.DriverName == driverName);
+                    
+                if (truck == null || !truck.Schedules.Any())
+                {
+                    // No truck or no assigned bins – show empty list
+                    return View(new List<Bin>());
+                }
+
+                // Get distinct bins from schedules
+                var assignedBins = truck.Schedules
+                    .Select(s => s.Bin)
+                    .Distinct()
+                    .ToList();
+
+                return View(assignedBins);
+            }
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
