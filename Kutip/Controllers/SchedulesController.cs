@@ -64,12 +64,14 @@ namespace Kutip.Controllers
                 return View(new List<Schedule>());
             }
 
-            // Get all schedules for this truck, ordered by date
-            var schedules = truck.Schedules
-                .OrderBy(s => s.ScheduledDate)
-                .ToList();
+            var schedules = await _context.Schedules
+               .Where(s => s.TruckId == truck.TruckId)
+               .Include(s => s.Bin)
+               .Include(s => s.Truck)
+               .OrderBy(s => s.ScheduledDate)
+               .ToListAsync();
 
-            return View(schedules);
+            return View("MySchedule", schedules);
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]

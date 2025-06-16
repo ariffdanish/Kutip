@@ -26,7 +26,6 @@ namespace Kutip.Models
         public DateTime ScheduledDate { get; set; }
 
        
-
         [Required]
         [Display(Name = "Status")]
         [EnumDataType(typeof(ScheduleStatus))]
@@ -37,6 +36,14 @@ namespace Kutip.Models
 
         [Display(Name = "Updated")]
         public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
+        [NotMapped]
+        public string Location { get; set; }
+        [NotMapped]
+        public double Latitude { get; set; }
+        [NotMapped]
+        public double Longitude { get; set; }
+        [NotMapped]
+        public string Street { get; set; }
 
         // Navigation Properties
         public virtual Bin Bin { get; set; }

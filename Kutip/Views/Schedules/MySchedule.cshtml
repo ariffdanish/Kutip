@@ -1,39 +1,69 @@
-﻿@model IEnumerable<Kutip.Models.Schedule>
+﻿@model List<Kutip.Models.Schedule>
 
 @{
     ViewData["Title"] = "My Schedule";
 }
 
-<h2>My Assigned Bins</h2>
+<div class="container mt-4">
+    <h2 class="mb-4 text-primary">
+        <i class="fas fa-calendar-alt me-2"></i>My Assigned Bins
+    </h2>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">You have no scheduled bins for this week.</div>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-bordered table-striped text-center align-middle">
+        <thead class="table-light">
             <tr>
                 <th>Bin Number</th>
                 <th>Location</th>
-                <th>Scheduled Date</th>
-                <th>Day of Week</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Street</th>
+                <th>Scheduled Day</th>
                 <th>Status</th>
+                <th>Last Updated</th>
+                <th>Route</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var schedule in Model)
+            @if (Model != null && Model.Any())
+            {
+                foreach (var schedule in Model)
+                {
+                    <tr>
+                        <td>@schedule.Bin?.BinNo</td>
+                        <td>@($"{schedule.Bin?.Street}, {schedule.Bin?.City}, {schedule.Bin?.State} {schedule.Bin?.PostCode}")</td>
+                        <td>@schedule.Bin?.Latitude</td>
+                        <td>@schedule.Bin?.Longitude</td>
+                        <td>@schedule.Bin?.Street</td>
+                        <td>@schedule.ScheduledDay.ToString()</td>
+                        <td>
+                            @{
+                                var badgeClass = schedule.Status switch
+                                {
+                                    Kutip.Models.ScheduleStatus.Completed => "badge bg-success",
+                                    Kutip.Models.ScheduleStatus.Missed => "badge bg-danger",
+                                    Kutip.Models.ScheduleStatus.Reassigned => "badge bg-info",
+                                    _ => "badge bg-warning"
+                                };
+                            }
+                            <span class="@badgeClass">@schedule.Status</span>
+                        </td>
+                        <td>@schedule.UpdatedAt.ToString("dd/MM/yyyy hh:mm tt")</td>
+                        <td>
+                            <a class="btn btn-outline-success btn-sm"
+                               href="https://www.google.com/maps/dir/?api=1&destination=@schedule.Bin?.Latitude,@schedule.Bin?.Longitude"
+                               target="_blank">
+                                <i class="fas fa-location-arrow"></i> Navigate
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@schedule.Bin?.BinNo</td> 
-                    <td>@($"{schedule.Bin?.Latitude}, {schedule.Bin?.Longitude}")</td>
-                    <td>@schedule.Bin?.Street</td>
-                    <td>@schedule.ScheduledDate.ToShortDateString()</td>
-                    <td>@schedule.ScheduledDate.ToString("dddd")</td>
-                    <td>@schedule.Status</td>
+                    <td colspan="9" class="text-muted">No schedules available.</td>
                 </tr>
             }
         </tbody>
     </table>
-}
+</div>
