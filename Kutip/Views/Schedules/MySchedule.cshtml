@@ -14,21 +14,19 @@
             <tr>
                 <th>Bin Number</th>
                 <th>Location</th>
-                <th>Scheduled Date</th>
+                
                 <th>Day of Week</th>
                 <th>Status</th>
-                <th>Last Updated</th>
-                <th>Route</th>
+                
             </tr>
         </thead>
         <tbody>
-            @if (Model != null && Model.Any())
+            @foreach (var schedule in Model)
             {
                 <tr>
                     <td>@schedule.Bin?.BinNo</td>
                     <td>@schedule.Bin?.Street</td>
-                    <td>@schedule.ScheduledDate.ToShortDateString()</td>
-                    <td>@schedule.ScheduledDate.ToString("dddd")</td>
+                    <td>@schedule.ScheduledDay</td>
                     <td>@schedule.Status</td>
                 </tr>
             }

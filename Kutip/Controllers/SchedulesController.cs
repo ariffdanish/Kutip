@@ -72,7 +72,7 @@ namespace Kutip.Controllers
                .OrderBy(s => s.ScheduledDate)
                .ToListAsync();
 
-            return View("MySchedule", schedules);
+            return View("MySchedule",schedules);
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
