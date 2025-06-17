@@ -1,0 +1,100 @@
+﻿@model IEnumerable<Kutip.Models.Schedule>
+@using Kutip.Models
+@{
+    ViewData["Title"] = "View Schedule";
+    var days = new[] {
+        ScheduleDay.Monday,
+        ScheduleDay.Tuesday,
+        ScheduleDay.Wednesday,
+        ScheduleDay.Thursday,
+        ScheduleDay.Friday,
+        ScheduleDay.Saturday
+    };
+
+    var grouped = Model
+        .GroupBy(s => s.Street)
+        .OrderBy(g => g.Key);
+}
+
+<div class="container">
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Dashboard" asp-action="Index"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Schedules" asp-action="Index"><i class="fas fa-calendar-alt"></i> Schedules</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                View Schedule
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-inner">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4 class="card-title text-center">Weekly Collection Schedule</h4>
+                    </div>
+                    <div class="card-body table-responsive">
+                        @if (!Model.Any())
+                        {
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> No schedules available.
+                            </div>
+                        }
+                        else
+                        {
+                            <table class="table table-bordered text-center align-middle">
+                                <thead class="table-light">
+                                    <tr class="text-center">
+                                        <th class="text-start text-center">Street</th>
+                                        @foreach (var day in days)
+                                        {
+                                            <th>@day.ToString()</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var group in grouped)
+                                    {
+                                        <tr class="text-center">
+                                            <td class="text-start text-center fw-bold">@group.Key</td>
+                                            @foreach (var day in days)
+                                            {
+                                                var schedules = group.Where(s => s.ScheduledDay == day).ToList();
+                                                if (schedules.Any())
+                                                {
+                                                    <td>
+                                                        @foreach (var schedule in schedules)
+                                                        {
+                                                            <div class="mb-1">
+                                                                <span class="badge bg-success">
+                                                                    @schedule.Truck?.TruckNo
+                                                                </span><br />
+                                                                <small class="text-muted">[@schedule.Bin?.BinNo]</small>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td><span class="text-muted">—</span></td>
+                                                }
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

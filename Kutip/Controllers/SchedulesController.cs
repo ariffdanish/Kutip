@@ -209,6 +209,43 @@ namespace Kutip.Controllers
 
             return View();
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> ViewSchedule()
+        {
+            // Get bins not assigned to any schedule
+            var unscheduledBins = await _context.Bin
+                .Where(b => !_context.Schedules.Any(s => s.BinId == b.BinId))
+                .ToListAsync();
+
+            // Get all active trucks
+            var trucks = await _context.Trucks
+                .Where(t => t.Status == TruckStatus.Active)
+                .ToListAsync();
+
+            // Fetch all scheduled items with related Bin and Truck data
+            var schedules = await _context.Schedules
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .ToListAsync();
+
+            // Assign NotMapped property 'Street' based on the Bin's Street
+            foreach (var schedule in schedules)
+            {
+                schedule.Street = schedule.Bin?.Street ?? "Unknown";
+            }
+
+            // ViewBag stats
+            ViewBag.BinCount = unscheduledBins.Count;
+            ViewBag.TruckCount = trucks.Count;
+            ViewBag.CanSchedule = unscheduledBins.Any() && trucks.Any();
+
+            return View(schedules);
+        }
+
+
+
         private string NormalizeStreet(string street)
         {
             if (string.IsNullOrWhiteSpace(street)) return street;

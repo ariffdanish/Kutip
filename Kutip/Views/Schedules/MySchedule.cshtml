@@ -1,35 +1,55 @@
 ﻿@model List<Kutip.Models.Schedule>
+@using Kutip.Models
 
 @{
     ViewData["Title"] = "My Schedule";
+
+    // Group schedules by day of the week
+    var groupedByDay = Model
+        .GroupBy(s => s.ScheduledDay)
+        .OrderBy(g => g.Key) // Ensure Monday–Saturday order
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    // Days to display
+    var days = Enum.GetValues(typeof(ScheduleDay))
+        .Cast<ScheduleDay>()
+        .Where(d => d != ScheduleDay.Sunday) // exclude Sunday
+        .ToList();
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-primary">
-        <i class="fas fa-calendar-alt me-2"></i>My Assigned Bins
-    </h2>
-
-    <table class="table table-bordered table-striped text-center align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Bin Number</th>
-                <th>Location</th>
-                
-                <th>Day of Week</th>
-                <th>Status</th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var schedule in Model)
+    <div class="page-inner">
+        <div class="row">
+            @foreach (var day in days)
             {
-                <tr>
-                    <td>@schedule.Bin?.BinNo</td>
-                    <td>@schedule.Bin?.Street</td>
-                    <td>@schedule.ScheduledDay</td>
-                    <td>@schedule.Status</td>
-                </tr>
+                <div class="col">
+                    <div class="card h-100 shadow border-primary">
+                        <div class="card-header text-center">
+                            <strong>@day</strong>
+                        </div>
+                        <div class="card-body">
+                            @if (groupedByDay.ContainsKey(day))
+                            {
+                                foreach (var schedule in groupedByDay[day])
+                                {
+                                    <div class="mb-2 border rounded p-2 bg-light">
+                                        <div><strong>Bin:</strong> @schedule.Bin?.BinNo</div>
+                                        <div><strong>Street:</strong> @schedule.Bin?.Street</div>
+                                        <div>
+                                            <strong>Status:</strong>
+                                            <span class="badge bg-secondary">@schedule.Status</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted text-center small">No bins</div>
+                            }
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    </div>
 </div>

@@ -53,7 +53,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0">Schedules List</h4>
                         <div>
-                            <h3 class="fw-bold mb-3">@ViewData["Title"]</h3>
+                            
                             @if (TempData["Success"] != null)
                             {
                                 <div class="alert alert-success">@TempData["Success"]</div>
@@ -64,12 +64,9 @@
                             }
                         </div>
                         <div>
-                            <a asp-controller="Schedules" asp-action="AutoSchedule" class="btn btn-outline-info btn-sm me-2">
-                                <i class="fas fa-magic"></i> Auto Schedule
-                            </a>
-                            <a asp-action="Create" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Create Schedule
-                            </a>
+                            <a asp-controller="Schedules" asp-action="AutoSchedule" class="btn btn-primary btn-sm">Auto Schedule</a>
+                            <a asp-action="Create" class="btn btn-primary btn-sm">Create Schedule</a>
+                            <a asp-controller="Schedules" asp-action="ViewSchedule" class="btn btn-primary btn-sm">View</a>
                         </div>
                     </div>
 
@@ -128,6 +125,7 @@
         </div>
     </div>
 </div>
+
 
 @section Scripts {
     <script>
