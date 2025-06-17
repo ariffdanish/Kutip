@@ -49,7 +49,7 @@
                         }
                         else
                         {
-                            <table class="table table-bordered text-center align-middle">
+                            <table id="basic-datatables" class="table table-bordered text-center align-middle" style="width:100%">
                                 <thead class="table-light">
                                     <tr class="text-center">
                                         <th class="text-start text-center">Street</th>
@@ -98,3 +98,14 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#basic-datatables').DataTable({
+                responsive: true,
+                fixedHeader: true
+            });
+        });
+    </script>
+}
