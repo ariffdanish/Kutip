@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Kutip.Controllers
@@ -208,7 +209,29 @@ namespace Kutip.Controllers
 
             return View();
         }
+        private string NormalizeStreet(string street)
+        {
+            if (string.IsNullOrWhiteSpace(street)) return street;
 
+            // Split into parts
+            var parts = street.Split(' ', '-', '/', '\\');
+
+            // Try to remove trailing number/letter at end (e.g., "1", "A", "Block B")
+            for (int i = parts.Length - 1; i >= 0; i--)
+            {
+                if (Regex.IsMatch(parts[i], @"^[a-zA-Z]$|^\d+$"))
+                {
+                    // Found a part that's only letters or digits at the end → likely an identifier
+                    var normalized = string.Join(" ", parts.Take(i));
+                    if (!string.IsNullOrWhiteSpace(normalized))
+                    {
+                        return normalized;
+                    }
+                }
+            }
+
+            return street;
+        }
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AutoScheduleConfirmed()
@@ -226,43 +249,64 @@ namespace Kutip.Controllers
             }
 
             var assignedSchedules = new List<Schedule>();
-            var allDays = Enum.GetValues(typeof(ScheduleDay)).Cast<ScheduleDay>().ToList();
+
+            // Step 1: Define valid days (excluding Sunday)
+            var allDays = Enum.GetValues(typeof(ScheduleDay))
+                              .Cast<ScheduleDay>()
+                              .Where(d => d != ScheduleDay.Sunday) // Exclude Sunday
+                              .ToList();
+
             var random = new Random();
 
-            // Step 1: Assign bins fairly among trucks
-            int totalBins = bins.Count;
+            // Step 2: Group bins by street similarity
+            var binsByStreet = new Dictionary<string, List<Bin>>();
+
+            foreach (var bin in bins)
+            {
+                var normalizedStreet = NormalizeStreet(bin.Street);
+
+                if (!binsByStreet.ContainsKey(normalizedStreet))
+                {
+                    binsByStreet[normalizedStreet] = new List<Bin>();
+                }
+
+                binsByStreet[normalizedStreet].Add(bin);
+            }
+
+            var groupedBins = binsByStreet.Values.ToList(); // Each group = list of Bin objects with similar street names
+
+            // Step 3: Assign groups fairly among trucks
+            int totalGroups = groupedBins.Count;
             int truckCount = trucks.Count;
 
-            // Calculate base assignments + extras
-            int binsPerTruck = totalBins / truckCount;
-            int extraBins = totalBins % truckCount;
+            int groupsPerTruck = totalGroups / truckCount;
+            int extraGroups = totalGroups % truckCount;
 
-            var truckBinAssignments = new Dictionary<Truck, List<Bin>>();
+            var truckBinAssignments = new Dictionary<Truck, List<List<Bin>>>();
 
-            // Shuffle trucks to randomize who gets the extra bins
             var shuffledTrucks = trucks.OrderBy(t => random.Next()).ToList();
 
             foreach (var truck in shuffledTrucks)
             {
-                int binCount = binsPerTruck + (extraBins > 0 ? 1 : 0);
-                truckBinAssignments[truck] = new List<Bin>();
+                int groupCount = groupsPerTruck + (extraGroups > 0 ? 1 : 0);
+                truckBinAssignments[truck] = new List<List<Bin>>();
 
-                for (int i = 0; i < binCount && bins.Count > 0; i++)
+                for (int i = 0; i < groupCount && groupedBins.Count > 0; i++)
                 {
-                    var selectedBin = bins[random.Next(bins.Count)];
-                    truckBinAssignments[truck].Add(selectedBin);
-                    bins.Remove(selectedBin);
+                    var selectedGroup = groupedBins[random.Next(groupedBins.Count)];
+                    truckBinAssignments[truck].Add(selectedGroup);
+                    groupedBins.Remove(selectedGroup);
                 }
 
-                if (extraBins > 0) extraBins--;
+                if (extraGroups > 0) extraGroups--;
             }
 
-            // Step 2: For each assigned bin, assign 3 non-consecutive days per bin
+            // Step 4: For each group, assign them to same truck and spaced-out days
             foreach (var truck in truckBinAssignments.Keys)
             {
-                var binsForTruck = truckBinAssignments[truck];
+                var groupsForTruck = truckBinAssignments[truck];
 
-                foreach (var bin in binsForTruck)
+                foreach (var group in groupsForTruck)
                 {
                     var selectedDays = new HashSet<ScheduleDay>();
 
@@ -289,20 +333,23 @@ namespace Kutip.Controllers
                         }
                     }
 
-                    foreach (var day in selectedDays)
+                    foreach (var bin in group)
                     {
-                        var schedule = new Schedule
+                        foreach (var day in selectedDays)
                         {
-                            BinId = bin.BinId,
-                            TruckId = truck.TruckId,
-                            ScheduledDay = day,
-                            Status = ScheduleStatus.Scheduled,
-                            CreatedAt = DateTimeOffset.Now,
-                            UpdatedAt = DateTimeOffset.Now
-                        };
+                            var schedule = new Schedule
+                            {
+                                BinId = bin.BinId,
+                                TruckId = truck.TruckId,
+                                ScheduledDay = day,
+                                Status = ScheduleStatus.Scheduled,
+                                CreatedAt = DateTimeOffset.Now,
+                                UpdatedAt = DateTimeOffset.Now
+                            };
 
-                        assignedSchedules.Add(schedule);
-                        truck.Schedules.Add(schedule);
+                            assignedSchedules.Add(schedule);
+                            truck.Schedules.Add(schedule);
+                        }
                     }
                 }
             }
@@ -310,11 +357,10 @@ namespace Kutip.Controllers
             _context.Schedules.AddRange(assignedSchedules);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"{assignedSchedules.Count} schedules created across {truckCount} trucks (3 days per bin).";
+            TempData["Success"] = $"{assignedSchedules.Count} schedules created across {truckCount} trucks (Monday–Saturday only).";
             return RedirectToAction(nameof(Index));
         }
 
-       
 
     }
 }
