@@ -214,8 +214,22 @@ namespace Kutip.Controllers
                 {
                     return View(new List<Bin>());
                 }
-
-                var assignedBins = truck.Schedules
+                var today = DateTime.Now.DayOfWeek;
+                var scheduleDay = today switch
+                {
+                    DayOfWeek.Monday => ScheduleDay.Monday,
+                    DayOfWeek.Tuesday => ScheduleDay.Tuesday,
+                    DayOfWeek.Wednesday => ScheduleDay.Wednesday,
+                    DayOfWeek.Thursday => ScheduleDay.Thursday,
+                    DayOfWeek.Friday => ScheduleDay.Friday,
+                    DayOfWeek.Saturday => ScheduleDay.Saturday,
+                    DayOfWeek.Sunday => ScheduleDay.Sunday,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                var todaysSchedules = truck.Schedules
+                .Where(s => s.ScheduledDay == scheduleDay) // Compare with ScheduleDay enum
+                .ToList();
+                var assignedBins = todaysSchedules
                     .Select(s => s.Bin)
                     .Distinct()
                     .ToList();

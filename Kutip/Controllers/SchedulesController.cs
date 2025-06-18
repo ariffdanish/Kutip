@@ -468,7 +468,7 @@ namespace Kutip.Controllers
                 using var page = engine.Process(img, PageSegMode.SingleBlock);
                 detectedPlate = page.GetText().Trim();
             }
-            catch
+            catch (Exception ex)
             {
                 return Json(new { success = false, message = "OCR processing failed." });
             }
@@ -482,68 +482,87 @@ namespace Kutip.Controllers
                 return Json(new { success = false, detectedPlate = "N/A", message = "No readable text detected from image." });
             }
 
-            // Step 4: Match BinNo and Schedule
-            var result = (from s in _context.Schedules
-                          join b in _context.Bin on s.BinId equals b.BinId
-                          where b.BinNo == detectedPlate
-                          select new
-                          {
-                              s.ScheduleId,
-                              b.BinNo,
-                              s.Status,
-                              s.ScheduledDay,
-                              s.BinId
-                          }).FirstOrDefault();
-
-            if (result != null && result.BinNo == detectedPlate)
+            // Step 4: Get current user and truck
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                var todayDay = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Today.DayOfWeek.ToString());
+                return Json(new { success = false, message = "User not found." });
+            }
 
-                if (result.ScheduledDay == todayDay && result.Status == ScheduleStatus.Scheduled)
-                {
-                    var schedule = _context.Schedules.FirstOrDefault(s => s.ScheduleId == result.ScheduleId);
-                    var bin = _context.Bin.FirstOrDefault(b => b.BinId == result.BinId);
+            var driverName = $"{currentUser.FirstName} {currentUser.LastName}";
 
-                    if (schedule != null && bin != null)
-                    {
-                        // Update both Schedule and Bin statuses
-                        schedule.Status = ScheduleStatus.Completed;
-                        schedule.UpdatedAt = DateTime.Now;
+            var truck = await _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .FirstOrDefaultAsync(t => t.DriverName == driverName && t.Status == TruckStatus.Active);
 
-                        bin.Status = BinStatus.Collected; // Assuming you have this enum value
-                        bin.UpdatedAt = DateTime.Now;
+            if (truck == null)
+            {
+                return Json(new { success = false, message = "You are not assigned to any active truck." });
+            }
 
-                        await _context.SaveChangesAsync();
+            // Step 5: Find matching Bin based on plate
+            var bin = await _context.Bin.FirstOrDefaultAsync(b => b.BinNo == detectedPlate);
 
-                        return Json(new
-                        {
-                            success = true,
-                            detectedPlate,
-                            message = "Bin and schedule updated successfully."
-                        });
-                    }
-                }
-
+            if (bin == null)
+            {
                 return Json(new
                 {
                     success = false,
                     detectedPlate,
-                    message = "No valid schedule found for today or schedule already completed."
+                    message = "No bin found with this plate number."
                 });
             }
 
+            // Step 6: Find today's schedule for this bin and truck
+            var todayDay = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Now.DayOfWeek.ToString());
+
+            var schedule = await _context.Schedules
+                .FirstOrDefaultAsync(s =>
+                    s.BinId == bin.BinId &&
+                    s.TruckId == truck.TruckId &&
+                    s.ScheduledDay == todayDay);
+
+            if (schedule == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "This bin is not scheduled for pickup today for your truck."
+                });
+            }
+
+            if (schedule.Status == ScheduleStatus.Completed)
+            {
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "This bin has already been completed."
+                });
+            }
+
+            // Step 7: Update both Schedule and Bin statuses
+            schedule.Status = ScheduleStatus.Completed;
+            schedule.UpdatedAt = DateTime.Now;
+
+            _context.Update(schedule);
+
+
+            await _context.SaveChangesAsync();
+
             return Json(new
             {
-                success = false,
+                success = true,
                 detectedPlate,
-                message = "No bin found matching the detected plate."
+                message = "Schedule and bin marked as completed."
             });
         }
 
-    }
-
-    public class ScanImageRequest
-    {
-        public string ImageBase64 { get; set; }
+        public class ScanImageRequest
+        {
+            public string ImageBase64 { get; set; }
+        }
     }
 }
