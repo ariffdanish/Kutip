@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using System;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Tesseract;
 
 namespace Kutip.Controllers
 {
@@ -19,11 +21,13 @@ namespace Kutip.Controllers
     public class SchedulesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public SchedulesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public SchedulesController(ApplicationDbContext context, IWebHostEnvironment environment, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _environment = environment;
             _userManager = userManager;
         }
 
@@ -73,7 +77,7 @@ namespace Kutip.Controllers
                .OrderBy(s => s.ScheduledDate)
                .ToListAsync();
 
-            return View("MySchedule",schedules);
+            return View("MySchedule", schedules);
         }
 
         [Authorize(Roles = "Admin,TruckDriver")]
@@ -438,5 +442,104 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "TruckDriver")]
+        [HttpPost]
+        public async Task<IActionResult> ScanPlate([FromBody] ScanImageRequest request)
+        {
+            // Step 1: Decode Base64 and save image
+            var base64Data = Regex.Match(request.ImageBase64, @"data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
+            var imageBytes = Convert.FromBase64String(base64Data);
+            var fileName = Guid.NewGuid() + ".png";
+            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+            // Step 2: OCR using Tesseract
+            string detectedPlate;
+            try
+            {
+                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+                using var img = Pix.LoadFromFile(filePath);
+                engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+                using var page = engine.Process(img, PageSegMode.SingleBlock);
+                detectedPlate = page.GetText().Trim();
+            }
+            catch
+            {
+                return Json(new { success = false, message = "OCR processing failed." });
+            }
+
+            // Step 3: Clean up OCR output
+            detectedPlate = detectedPlate.ToUpper().Trim();
+            detectedPlate = Regex.Replace(detectedPlate, @"[^A-Z0-9\\-]", "");
+
+            if (string.IsNullOrWhiteSpace(detectedPlate))
+            {
+                return Json(new { success = false, detectedPlate = "N/A", message = "No readable text detected from image." });
+            }
+
+            // Step 4: Match BinNo and Schedule
+            var result = (from s in _context.Schedules
+                          join b in _context.Bin on s.BinId equals b.BinId
+                          where b.BinNo == detectedPlate
+                          select new
+                          {
+                              s.ScheduleId,
+                              b.BinNo,
+                              s.Status,
+                              s.ScheduledDay,
+                              s.BinId
+                          }).FirstOrDefault();
+
+            if (result != null && result.BinNo == detectedPlate)
+            {
+                var todayDay = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Today.DayOfWeek.ToString());
+
+                if (result.ScheduledDay == todayDay && result.Status == ScheduleStatus.Scheduled)
+                {
+                    var schedule = _context.Schedules.FirstOrDefault(s => s.ScheduleId == result.ScheduleId);
+                    var bin = _context.Bin.FirstOrDefault(b => b.BinId == result.BinId);
+
+                    if (schedule != null && bin != null)
+                    {
+                        // Update both Schedule and Bin statuses
+                        schedule.Status = ScheduleStatus.Completed;
+                        schedule.UpdatedAt = DateTime.Now;
+
+                        bin.Status = BinStatus.Collected; // Assuming you have this enum value
+                        bin.UpdatedAt = DateTime.Now;
+
+                        await _context.SaveChangesAsync();
+
+                        return Json(new
+                        {
+                            success = true,
+                            detectedPlate,
+                            message = "Bin and schedule updated successfully."
+                        });
+                    }
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "No valid schedule found for today or schedule already completed."
+                });
+            }
+
+            return Json(new
+            {
+                success = false,
+                detectedPlate,
+                message = "No bin found matching the detected plate."
+            });
+        }
+
+    }
+
+    public class ScanImageRequest
+    {
+        public string ImageBase64 { get; set; }
     }
 }

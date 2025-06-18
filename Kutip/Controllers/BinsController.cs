@@ -179,80 +179,11 @@ namespace Kutip.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,TruckDriver")]
-        [HttpPost]
-        public async Task<IActionResult> ScanPlate([FromBody] ScanImageRequest request)
-        {
-            var base64Data = Regex.Match(request.ImageBase64, @"data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
-            var imageBytes = Convert.FromBase64String(base64Data);
-
-            var fileName = Guid.NewGuid() + ".png";
-            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
-            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
-
-            string detectedPlate;
-            try
-            {
-                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
-                using var img = Pix.LoadFromFile(filePath);
-                var config = new Tesseract.PageSegMode[] { PageSegMode.SingleBlock };
-                engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-                using var page = engine.Process(img, PageSegMode.SingleBlock);
-
-                detectedPlate = page.GetText().Trim();
-            }
-            catch
-            {
-                return Json(new { success = false, message = "OCR processing failed." });
-            }
-
-            // Clean OCR result
-            detectedPlate = detectedPlate.ToUpper().Trim();
-
-            // Allow letters, numbers, hyphens, and remove noise
-            detectedPlate = Regex.Replace(detectedPlate, @"[^A-Z0-9\-]", "");
-
-            // Handle fallback
-            if (string.IsNullOrWhiteSpace(detectedPlate))
-            {
-                return Json(new { success = false, detectedPlate = "N/A", message = "No readable text detected from image." });
-            }
-
-
-            var bin = _context.Bin.FirstOrDefault(b => b.BinNo == detectedPlate);
-            if (bin != null && bin.Status == BinStatus.Active)
-            {
-                bin.Status = BinStatus.Collected; // Mark as collected
-                bin.UpdatedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    detectedPlate,
-                    message = $"Bin '{detectedPlate}' is Active now."
-                });
-            }
-            else
-            {
-                return Json(new
-                {
-                    success = false,
-                    detectedPlate,
-                    message = "Bin not found or already Inactive (Collected)."
-                });
-            }
-        }
-
         private bool BinExists(int id)
         {
             return _context.Bin.Any(e => e.BinId == id);
         }
+
     }
 
-    public class ScanImageRequest
-    {
-        public string ImageBase64 { get; set; }
-    }
 }
