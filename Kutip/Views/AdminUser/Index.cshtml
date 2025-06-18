@@ -41,7 +41,8 @@
                                                 <div class="mb-3 text-center">
                                                     @foreach (var role in entry.roles)
                                                     {
-                                                        <span class="badge bg-secondary me-1">@role</span>
+                                                        var badgeClass = role == "Admin" ? "bg-success" : "bg-secondary";
+                                                        <span class="badge @badgeClass me-1">@role</span>
                                                     }
                                                 </div>
                                             </div>
