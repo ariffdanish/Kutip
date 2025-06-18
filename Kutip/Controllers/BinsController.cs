@@ -255,4 +255,5 @@ namespace Kutip.Controllers
     {
         public string ImageBase64 { get; set; }
     }
+
 }

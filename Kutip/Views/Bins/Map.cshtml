@@ -68,7 +68,7 @@
     <!-- Admin Map Initialization -->
     <script>
         function initAdminMode() {
-            map.setView([14.0860746, 100.608406], 6); // General Malaysia view
+            map.setView([1.4927, 103.7565], 11); // General Malaysia view
 
         @foreach (var bin in Model)
         {
@@ -78,7 +78,7 @@
                     string truckNo = bin.Schedules.FirstOrDefault()?.Truck?.TruckNo ?? "None";
                 }
 
-                        L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                        L.marker([@bin.Latitude, @bin.Longitude])
                             .addTo(map)
                             .bindPopup(`<b>@bin.BinNo</b><br>Status: @status<br>Assigned Truck: @truckNo`);
             </text>
