@@ -33,6 +33,51 @@ namespace Kutip.Controllers
             return View(bins);
         }
 
+
+
+        [Authorize(Roles = "TruckDriver")]
+        public async Task<IActionResult> MyBin()
+        {
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge(); // User not found or not logged in
+            }
+
+            // Extract the user's first and last name
+            var driverFirstName = user.FirstName;
+            var driverLastName = user.LastName;
+
+            // Concatenate FirstName and LastName with a space in between
+            var driverName = $"{driverFirstName} {driverLastName}";
+
+            // Find the truck where DriverName matches
+            var truck = await _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .FirstOrDefaultAsync(t =>
+                    t.DriverName == driverName);
+
+            if (truck == null)
+            {
+                TempData["Error"] = "You are not assigned to any truck.";
+                return View(new List<Schedule>());
+            }
+
+            var schedules = await _context.Schedules
+               .Where(s => s.TruckId == truck.TruckId)
+               .Include(s => s.Bin)
+               .Include(s => s.Truck)
+               .OrderBy(s => s.ScheduledDate)
+               .ToListAsync();
+
+            return View("MyBin", schedules);
+        }
+
+
+
+
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {

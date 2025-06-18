@@ -40,6 +40,8 @@ namespace Kutip.Controllers
                 .ToListAsync();
             return View(schedules);
         }
+
+
         [Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()
         {
@@ -79,6 +81,8 @@ namespace Kutip.Controllers
 
             return View("MySchedule", schedules);
         }
+
+
 
         [Authorize(Roles = "Admin,TruckDriver")]
         public async Task<IActionResult> Details(int? id)
