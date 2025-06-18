@@ -273,7 +273,22 @@ namespace Kutip.Controllers
         [HttpPost]
         public async Task<IActionResult> AutoScheduleConfirmed()
         {
-            var bins = await _context.Bin.ToListAsync();
+            // Get unscheduled bins only
+            var scheduledBinIds = await _context.Schedules
+                .Select(s => s.BinId)
+                .Distinct()
+                .ToListAsync();
+
+            var unscheduledBins = await _context.Bin
+                .Where(b => !_context.Schedules.Any(s => s.BinId == b.BinId))
+                .ToListAsync();
+
+            if (!unscheduledBins.Any())
+            {
+                TempData["Info"] = "No new bins found. All bins are already scheduled.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var trucks = await _context.Trucks
                 .Include(t => t.Schedules)
                 .Where(t => t.Status == TruckStatus.Active)
@@ -286,8 +301,6 @@ namespace Kutip.Controllers
             }
 
             var assignedSchedules = new List<Schedule>();
-
-            // Step 1: Define valid days (excluding Sunday)
             var allDays = Enum.GetValues(typeof(ScheduleDay))
                               .Cast<ScheduleDay>()
                               .Where(d => d != ScheduleDay.Sunday) // Exclude Sunday
@@ -295,10 +308,10 @@ namespace Kutip.Controllers
 
             var random = new Random();
 
-            // Step 2: Group bins by street similarity
+            // Step 1: Group bins by street similarity
             var binsByStreet = new Dictionary<string, List<Bin>>();
 
-            foreach (var bin in bins)
+            foreach (var bin in unscheduledBins)
             {
                 var normalizedStreet = NormalizeStreet(bin.Street);
 
@@ -312,7 +325,7 @@ namespace Kutip.Controllers
 
             var groupedBins = binsByStreet.Values.ToList(); // Each group = list of Bin objects with similar street names
 
-            // Step 3: Assign groups fairly among trucks
+            // Step 2: Assign groups fairly among trucks
             int totalGroups = groupedBins.Count;
             int truckCount = trucks.Count;
 
@@ -338,7 +351,7 @@ namespace Kutip.Controllers
                 if (extraGroups > 0) extraGroups--;
             }
 
-            // Step 4: For each group, assign them to same truck and spaced-out days
+            // Step 3: For each group, assign them to same truck and spaced-out days
             foreach (var truck in truckBinAssignments.Keys)
             {
                 var groupsForTruck = truckBinAssignments[truck];
@@ -391,13 +404,39 @@ namespace Kutip.Controllers
                 }
             }
 
-            _context.Schedules.AddRange(assignedSchedules);
-            await _context.SaveChangesAsync();
+            if (assignedSchedules.Any())
+            {
+                _context.Schedules.AddRange(assignedSchedules);
+                await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"{assignedSchedules.Count} schedules created across {truckCount} trucks (Monday–Saturday only).";
+                TempData["Success"] = $"{assignedSchedules.Count} schedules created for {unscheduledBins.Count} new bins (Monday–Saturday only).";
+            }
+            else
+            {
+                TempData["Info"] = "No new bins could be scheduled.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeleteSchedule()
+        {
+            try
+            {
+                var allSchedules = _context.Schedules.ToList();
+                _context.Schedules.RemoveRange(allSchedules);
+                _context.SaveChanges();
 
+                TempData["Success"] = "All schedules have been deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while deleting schedules.";
+                // Log exception (ex) here if using logging framework
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
 
     }
 }
