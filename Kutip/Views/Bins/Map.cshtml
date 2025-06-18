@@ -122,7 +122,7 @@
 
                         L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
                             .addTo(map)
-                            .bindPopup(`<b>@bin.BinNo</b><br>Status: @status`)
+                            .bindPopup(`<b>@bin.BinNo</b><br>Status: @status <br> Location: @bin.Street`)
                             .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, @bin.BinId));
             </text>
         }
