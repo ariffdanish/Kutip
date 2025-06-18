@@ -67,6 +67,9 @@
                             <a asp-controller="Schedules" asp-action="AutoSchedule" class="btn btn-primary btn-sm">Auto Schedule</a>
                             <a asp-action="Create" class="btn btn-primary btn-sm">Create Schedule</a>
                             <a asp-controller="Schedules" asp-action="ViewSchedule" class="btn btn-primary btn-sm">View</a>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('@Url.Action("DeleteSchedule", "Schedules")')">
+                                Delete Schedule
+                            </button>
                         </div>
                     </div>
 
