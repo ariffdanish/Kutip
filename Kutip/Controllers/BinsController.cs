@@ -140,43 +140,36 @@ namespace Kutip.Controllers
         public async Task<IActionResult> Map()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Challenge(); // Not logged in or invalid user
-            }
+            if (user == null) return Challenge();
 
             var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
             ViewBag.UserRole = userRole;
 
             if (userRole == "Admin")
             {
-                // Admin sees all bins
-                var allBins = _context.Bin.ToList();
-                return View(allBins);
+                // Admin sees all bins with schedule info
+                var binsWithSchedules = await _context.Bin
+                    .Include(b => b.Schedules)
+                        .ThenInclude(s => s.Truck)
+                    .ToListAsync();
+
+                return View(binsWithSchedules);
             }
             else
             {
-                // TruckDriver: find their truck and get assigned bins
-                
-                var driverFirstName = user.FirstName;
-                var driverLastName = user.LastName;
+                // Truck Driver: get only their assigned bins
+                var driverName = $"{user.FirstName} {user.LastName}";
 
-                // Concatenate FirstName and LastName with a space in between
-                var driverName = $"{driverFirstName} {driverLastName}";
-
-                // Find the truck where DriverName matches
                 var truck = await _context.Trucks
                     .Include(t => t.Schedules)
                         .ThenInclude(s => s.Bin)
-                        .FirstOrDefaultAsync(t => t.DriverName == driverName);
-                    
+                    .FirstOrDefaultAsync(t => t.DriverName == driverName);
+
                 if (truck == null || !truck.Schedules.Any())
                 {
-                    // No truck or no assigned bins – show empty list
                     return View(new List<Bin>());
                 }
 
-                // Get distinct bins from schedules
                 var assignedBins = truck.Schedules
                     .Select(s => s.Bin)
                     .Distinct()
