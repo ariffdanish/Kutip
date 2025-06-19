@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Globalization;
 using Rotativa.AspNetCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Kutip.Controllers
 {
@@ -15,8 +16,9 @@ namespace Kutip.Controllers
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DashboardController(ApplicationDbContext context)
+        public DashboardController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
         }
@@ -121,7 +123,48 @@ namespace Kutip.Controllers
 
             return View("TruckReport", trucks.ToList());
         }
+        [Authorize]
+        public async Task<IActionResult> Map()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
+            var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
+            ViewBag.UserRole = userRole;
+
+            if (userRole == "Admin")
+            {
+                // Admin sees all bins with schedule info
+                var binsWithSchedules = await _context.Bin
+                    .Include(b => b.Schedules)
+                        .ThenInclude(s => s.Truck)
+                    .ToListAsync();
+
+                return View(binsWithSchedules);
+            }
+            else
+            {
+                // Truck Driver: get only their assigned bins
+                var driverName = $"{user.FirstName} {user.LastName}";
+
+                var truck = await _context.Trucks
+                    .Include(t => t.Schedules)
+                        .ThenInclude(s => s.Bin)
+                    .FirstOrDefaultAsync(t => t.DriverName == driverName);
+
+                if (truck == null || !truck.Schedules.Any())
+                {
+                    return View(new List<Bin>());
+                }
+
+                var assignedBins = truck.Schedules
+                    .Select(s => s.Bin)
+                    .Distinct()
+                    .ToList();
+
+                return View(assignedBins);
+            }
+        }
         public IActionResult ExportTruckPDF(TruckStatus? truckStatusFilter)
         {
             var trucks = _context.Trucks.AsQueryable();

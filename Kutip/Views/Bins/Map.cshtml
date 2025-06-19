@@ -32,7 +32,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.min.js"></script>
-
     <!-- Leaflet Routing Machine JS -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
@@ -64,20 +63,31 @@
             iconSize: [35, 35],
             iconAnchor: [17, 35]
         });
+    </script>
 
+    <!-- Admin Map Initialization -->
+    <script>
         function initAdminMode() {
-            map.setView([14.0860746, 100.608406], 6); // General Malaysia view
+            map.setView([1.4927, 103.7565], 11); // General Malaysia view
 
         @foreach (var bin in Model)
         {
             <text>
-                        L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                @{
+                    string status = bin.Schedules.FirstOrDefault()?.Status.ToString() ?? "Unscheduled";
+                    string truckNo = bin.Schedules.FirstOrDefault()?.Truck?.TruckNo ?? "None";
+                }
+
+                        L.marker([@bin.Latitude, @bin.Longitude])
                             .addTo(map)
-                            .bindPopup(`<b>@bin.BinNo</b><br>@bin.Street, @bin.City`);
+                            .bindPopup(`<b>@bin.BinNo</b><br>Status: @status<br>Assigned Truck: @truckNo`);
             </text>
         }
         }
+    </script>
 
+    <!-- Truck Driver Map Initialization -->
+    <script>
         function initTruckDriverMode() {
             if (!navigator.geolocation) {
                 alert("Geolocation is not supported by your browser.");
@@ -103,29 +113,19 @@
                 taxiMarker = L.marker(currentLocation, { icon: taxiIcon }).addTo(map);
             }
 
-            fetchAssignedBins();
-        }
-
-        function fetchAssignedBins() {
-            $.ajax({
-                url: '@Url.Action("GetAssignedBins", "Schedules")',
-                type: 'GET',
-                success: function (data) {
-                    plotBins(data);
-                },
-                error: function () {
-                    alert("Failed to load assigned bins.");
+        @foreach (var bin in Model)
+        {
+            <text>
+                @{
+                    string status = bin.Schedules.FirstOrDefault()?.Status.ToString() ?? "Unscheduled";
                 }
-            });
-        }
 
-        function plotBins(bins) {
-            bins.forEach(bin => {
-                var binMarker = L.marker([bin.Latitude, bin.Longitude], { icon: binIcon })
-                    .addTo(map)
-                    .bindPopup(`<b>${bin.BinNo}</b><br>${bin.Street}, ${bin.City}`)
-                    .on('click', () => showRouteToBin(bin.Latitude, bin.Longitude, bin.BinId));
-            });
+                        L.marker([@bin.Latitude, @bin.Longitude], { icon: binIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>@bin.BinNo</b><br>Status: @status <br> Location: @bin.Street`)
+                            .on('click', () => showRouteToBin(@bin.Latitude, @bin.Longitude, @bin.BinId));
+            </text>
+        }
         }
 
         function showRouteToBin(binLat, binLng, binId) {

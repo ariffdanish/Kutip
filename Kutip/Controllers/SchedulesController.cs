@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using System;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Tesseract;
 
 namespace Kutip.Controllers
 {
@@ -19,11 +21,13 @@ namespace Kutip.Controllers
     public class SchedulesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public SchedulesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public SchedulesController(ApplicationDbContext context, IWebHostEnvironment environment, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _environment = environment;
             _userManager = userManager;
         }
 
@@ -36,6 +40,8 @@ namespace Kutip.Controllers
                 .ToListAsync();
             return View(schedules);
         }
+
+
         [Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()
         {
@@ -73,8 +79,10 @@ namespace Kutip.Controllers
                .OrderBy(s => s.ScheduledDate)
                .ToListAsync();
 
-            return View("MySchedule",schedules);
+            return View("MySchedule", schedules);
         }
+
+
 
         [Authorize(Roles = "Admin,TruckDriver")]
         public async Task<IActionResult> Details(int? id)
@@ -473,5 +481,123 @@ namespace Kutip.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "TruckDriver")]
+        [HttpPost]
+        public async Task<IActionResult> ScanPlate([FromBody] ScanImageRequest request)
+        {
+            // Step 1: Decode Base64 and save image
+            var base64Data = Regex.Match(request.ImageBase64, @"data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
+            var imageBytes = Convert.FromBase64String(base64Data);
+            var fileName = Guid.NewGuid() + ".png";
+            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+            // Step 2: OCR using Tesseract
+            string detectedPlate;
+            try
+            {
+                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+                using var img = Pix.LoadFromFile(filePath);
+                engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+                using var page = engine.Process(img, PageSegMode.SingleBlock);
+                detectedPlate = page.GetText().Trim();
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "OCR processing failed." });
+            }
+
+            // Step 3: Clean up OCR output
+            detectedPlate = detectedPlate.ToUpper().Trim();
+            detectedPlate = Regex.Replace(detectedPlate, @"[^A-Z0-9\\-]", "");
+
+            if (string.IsNullOrWhiteSpace(detectedPlate))
+            {
+                return Json(new { success = false, detectedPlate = "N/A", message = "No readable text detected from image." });
+            }
+
+            // Step 4: Get current user and truck
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Json(new { success = false, message = "User not found." });
+            }
+
+            var driverName = $"{currentUser.FirstName} {currentUser.LastName}";
+
+            var truck = await _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .FirstOrDefaultAsync(t => t.DriverName == driverName && t.Status == TruckStatus.Active);
+
+            if (truck == null)
+            {
+                return Json(new { success = false, message = "You are not assigned to any active truck." });
+            }
+
+            // Step 5: Find matching Bin based on plate
+            var bin = await _context.Bin.FirstOrDefaultAsync(b => b.BinNo == detectedPlate);
+
+            if (bin == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "No bin found with this plate number."
+                });
+            }
+
+            // Step 6: Find today's schedule for this bin and truck
+            var todayDay = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Now.DayOfWeek.ToString());
+
+            var schedule = await _context.Schedules
+                .FirstOrDefaultAsync(s =>
+                    s.BinId == bin.BinId &&
+                    s.TruckId == truck.TruckId &&
+                    s.ScheduledDay == todayDay);
+
+            if (schedule == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "This bin is not scheduled for pickup today for your truck."
+                });
+            }
+
+            if (schedule.Status == ScheduleStatus.Completed)
+            {
+                return Json(new
+                {
+                    success = false,
+                    detectedPlate,
+                    message = "This bin has already been completed."
+                });
+            }
+
+            // Step 7: Update both Schedule and Bin statuses
+            schedule.Status = ScheduleStatus.Completed;
+            schedule.UpdatedAt = DateTime.Now;
+
+            _context.Update(schedule);
+
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                detectedPlate,
+                message = "Schedule and bin marked as completed."
+            });
+        }
+
+        public class ScanImageRequest
+        {
+            public string ImageBase64 { get; set; }
+        }
     }
 }

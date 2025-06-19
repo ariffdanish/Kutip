@@ -6,6 +6,7 @@ namespace Kutip.Models
     {
         public List<Bin> Bins { get; set; }
         public List<Truck> Trucks { get; set; }
+        public List<Schedule> Schedules { get; set; }
 
         // reporting properties
         // For Pickup Report
