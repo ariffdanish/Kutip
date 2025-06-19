@@ -8,12 +8,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Kutip Smart - @ViewData["Title"]</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="~/assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="~/assets/img/kutipIcon.png" type="image/x-icon" />
+   
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <!-- chemi -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -59,10 +62,11 @@
 
         <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
+            <br />
             <div class="sidebar-logo">
                 <div class="logo-header" data-background-color="dark">
                     <a asp-controller="Home" asp-action="Index" class="logo">
-                        <img src="~/assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+                        <img src="~/assets/img/light2_kutipLogo.png" alt="navbar brand" class="navbar-brand" height="65"/>
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -115,7 +119,7 @@
                             <li class="nav-item">
                                 <a asp-controller="Bins" asp-action="Map">
                                     <i class="fas fa-map"></i>
-                                    <span class="sub-item">Route</span>
+                                    <span class="sub-item">Bin Location & Status</span>
                                 </a>
                             </li>
 
@@ -137,7 +141,7 @@
                             </li>
 
                             <li class="nav-item">
-                                <a asp-controller="Bins" asp-action="Index">
+								<a asp-controller="Bins" asp-action="MyBin">
                                     <i class="fas fa-trash"></i>
                                     <span class="sub-item">Bins</span>
                                 </a>
@@ -357,8 +361,9 @@
         });
 
         setTimeout(() => $(".alert").alert('close'), 5000);
-    </script>
-    <script>
+
+
+
         function confirmDelete(url) {
             Swal.fire({
                 title: 'Are you sure?',

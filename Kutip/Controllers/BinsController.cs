@@ -33,6 +33,51 @@ namespace Kutip.Controllers
             return View(bins);
         }
 
+
+
+        [Authorize(Roles = "TruckDriver")]
+        public async Task<IActionResult> MyBin()
+        {
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge(); // User not found or not logged in
+            }
+
+            // Extract the user's first and last name
+            var driverFirstName = user.FirstName;
+            var driverLastName = user.LastName;
+
+            // Concatenate FirstName and LastName with a space in between
+            var driverName = $"{driverFirstName} {driverLastName}";
+
+            // Find the truck where DriverName matches
+            var truck = await _context.Trucks
+                .Include(t => t.Schedules)
+                    .ThenInclude(s => s.Bin)
+                .FirstOrDefaultAsync(t =>
+                    t.DriverName == driverName);
+
+            if (truck == null)
+            {
+                TempData["Error"] = "You are not assigned to any truck.";
+                return View(new List<Schedule>());
+            }
+
+            var schedules = await _context.Schedules
+               .Where(s => s.TruckId == truck.TruckId)
+               .Include(s => s.Bin)
+               .Include(s => s.Truck)
+               .OrderBy(s => s.ScheduledDate)
+               .ToListAsync();
+
+            return View("MyBin", schedules);
+        }
+
+
+
+
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
@@ -140,44 +185,51 @@ namespace Kutip.Controllers
         public async Task<IActionResult> Map()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Challenge(); // Not logged in or invalid user
-            }
+            if (user == null) return Challenge();
 
             var userRole = User.IsInRole("Admin") ? "Admin" : "TruckDriver";
             ViewBag.UserRole = userRole;
 
             if (userRole == "Admin")
             {
-                // Admin sees all bins
-                var allBins = _context.Bin.ToList();
-                return View(allBins);
+                // Admin sees all bins with schedule info
+                var binsWithSchedules = await _context.Bin
+                    .Include(b => b.Schedules)
+                        .ThenInclude(s => s.Truck)
+                    .ToListAsync();
+
+                return View(binsWithSchedules);
             }
             else
             {
-                // TruckDriver: find their truck and get assigned bins
-                
-                var driverFirstName = user.FirstName;
-                var driverLastName = user.LastName;
+                // Truck Driver: get only their assigned bins
+                var driverName = $"{user.FirstName} {user.LastName}";
 
-                // Concatenate FirstName and LastName with a space in between
-                var driverName = $"{driverFirstName} {driverLastName}";
-
-                // Find the truck where DriverName matches
                 var truck = await _context.Trucks
                     .Include(t => t.Schedules)
                         .ThenInclude(s => s.Bin)
-                        .FirstOrDefaultAsync(t => t.DriverName == driverName);
-                    
+                    .FirstOrDefaultAsync(t => t.DriverName == driverName);
+
                 if (truck == null || !truck.Schedules.Any())
                 {
-                    // No truck or no assigned bins – show empty list
                     return View(new List<Bin>());
                 }
-
-                // Get distinct bins from schedules
-                var assignedBins = truck.Schedules
+                var today = DateTime.Now.DayOfWeek;
+                var scheduleDay = today switch
+                {
+                    DayOfWeek.Monday => ScheduleDay.Monday,
+                    DayOfWeek.Tuesday => ScheduleDay.Tuesday,
+                    DayOfWeek.Wednesday => ScheduleDay.Wednesday,
+                    DayOfWeek.Thursday => ScheduleDay.Thursday,
+                    DayOfWeek.Friday => ScheduleDay.Friday,
+                    DayOfWeek.Saturday => ScheduleDay.Saturday,
+                    DayOfWeek.Sunday => ScheduleDay.Sunday,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                var todaysSchedules = truck.Schedules
+                .Where(s => s.ScheduledDay == scheduleDay) // Compare with ScheduleDay enum
+                .ToList();
+                var assignedBins = todaysSchedules
                     .Select(s => s.Bin)
                     .Distinct()
                     .ToList();
@@ -186,80 +238,11 @@ namespace Kutip.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,TruckDriver")]
-        [HttpPost]
-        public async Task<IActionResult> ScanPlate([FromBody] ScanImageRequest request)
-        {
-            var base64Data = Regex.Match(request.ImageBase64, @"data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
-            var imageBytes = Convert.FromBase64String(base64Data);
-
-            var fileName = Guid.NewGuid() + ".png";
-            var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
-            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
-
-            string detectedPlate;
-            try
-            {
-                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
-                using var img = Pix.LoadFromFile(filePath);
-                var config = new Tesseract.PageSegMode[] { PageSegMode.SingleBlock };
-                engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-                using var page = engine.Process(img, PageSegMode.SingleBlock);
-
-                detectedPlate = page.GetText().Trim();
-            }
-            catch
-            {
-                return Json(new { success = false, message = "OCR processing failed." });
-            }
-
-            // Clean OCR result
-            detectedPlate = detectedPlate.ToUpper().Trim();
-
-            // Allow letters, numbers, hyphens, and remove noise
-            detectedPlate = Regex.Replace(detectedPlate, @"[^A-Z0-9\-]", "");
-
-            // Handle fallback
-            if (string.IsNullOrWhiteSpace(detectedPlate))
-            {
-                return Json(new { success = false, detectedPlate = "N/A", message = "No readable text detected from image." });
-            }
-
-
-            var bin = _context.Bin.FirstOrDefault(b => b.BinNo == detectedPlate);
-            if (bin != null && bin.Status == BinStatus.Active)
-            {
-                bin.Status = BinStatus.Collected; // Mark as collected
-                bin.UpdatedAt = DateTime.Now;
-                await _context.SaveChangesAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    detectedPlate,
-                    message = $"Bin '{detectedPlate}' is Active now."
-                });
-            }
-            else
-            {
-                return Json(new
-                {
-                    success = false,
-                    detectedPlate,
-                    message = "Bin not found or already Inactive (Collected)."
-                });
-            }
-        }
-
         private bool BinExists(int id)
         {
             return _context.Bin.Any(e => e.BinId == id);
         }
+
     }
 
-    public class ScanImageRequest
-    {
-        public string ImageBase64 { get; set; }
-    }
 }

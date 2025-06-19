@@ -1,0 +1,111 @@
+﻿@model List<Kutip.Models.Schedule>
+@using Kutip.Models
+
+@{
+    ViewData["Title"] = "My Bin";
+    bool isTruckDriver = User.IsInRole("TruckDriver");
+
+    // Get today's day as enum
+    var todayEnum = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Now.DayOfWeek.ToString());
+
+    // Filter model to only show schedules assigned for today
+    var todaySchedules = Model.Where(s => s.ScheduledDay == todayEnum).ToList();
+}
+
+
+<div class="container">
+    <div class="page-inner">
+        <div class="row-md-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="basic-datatables" class="display table table-striped table-hover" style="width:100%">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>@Html.DisplayNameFor(model => model.First().Bin.BinNo)</th>
+                                    <th>@Html.DisplayNameFor(model => model.First().Bin.Street)</th>
+                                    <th>@Html.DisplayNameFor(model => model.First().Bin.City)</th>
+                                    <th>Status</th>
+                                    <th>Schedule Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var schedule in todaySchedules)
+                                {
+                                    var bin = schedule.Bin;
+                                    var status = bin.Status.ToString();
+                                    string badgeClass = status switch
+                                    {
+                                        "Active" => "badge bg-success",
+                                        "Inactive" => "badge bg-danger",
+                                        _ => "badge bg-secondary"
+                                    };
+
+                                    string scheduleStatus = schedule.Status.ToString();
+                                    string scheduleBadgeClass = scheduleStatus switch
+                                    {
+                                        "Scheduled" => "badge bg-primary",
+                                        "Completed" => "badge bg-success",
+                                        "Missed" => "badge bg-danger",
+                                        "Reassigned" => "badge bg-warning",
+                                        _ => "badge bg-secondary"
+                                    };
+
+                                    <tr class="text-center">
+                                        <td>@bin.BinNo</td>
+                                        <td>@bin.Street</td>
+                                        <td>@bin.City</td>
+                                        <td><span class="@badgeClass">@status</span></td>
+                                        <td><span class="@scheduleBadgeClass">@scheduleStatus</span></td>
+                                        <td>
+                                            @if (isTruckDriver)
+                                            {
+                                                <form method="post" asp-controller="Schedules" asp-action="MarkDone" class="d-inline" onsubmit="return confirm('Mark schedule @schedule.ScheduleId as DONE?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Mark as Done">
+                                                        <i class="fas fa-check"></i> DONE
+                                                    </button>
+                                                </form>
+
+                                                <form method="post" asp-controller="Schedules" asp-action="ReportIssue" class="d-inline ms-1" onsubmit="return confirm('Report ISSUE for schedule @schedule.ScheduleId?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
+                                                    <button type="submit" class="btn btn-danger btn-sm" title="Report Issue">
+                                                        <i class="fas fa-exclamation-triangle"></i> ISSUE
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not Authorized</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+
+        $(document).ready(function () {
+            $('#basic-datatables').DataTable({
+                responsive: true,
+                fixedHeader: true
+            });
+        });
+
+    </script>
+}

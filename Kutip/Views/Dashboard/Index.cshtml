@@ -519,8 +519,14 @@
         @foreach (var bin in Model.Bins)
         {
             <text>
-                        L.marker([@bin.Latitude, @bin.Longitude]).addTo(map)
-                            .bindPopup("<b>@bin.BinNo</b><br>@($"{bin.Street}, {bin.City}")");
+                @{
+                    string status = bin.Schedules.FirstOrDefault()?.Status.ToString() ?? "Unscheduled";
+                    string truckNo = bin.Schedules.FirstOrDefault()?.Truck?.TruckNo ?? "None";
+                }
+
+                            L.marker([@bin.Latitude, @bin.Longitude])
+                                .addTo(map)
+                                .bindPopup(`<b>@bin.BinNo</b><br>Status: @status<br>Assigned Truck: @truckNo`);
             </text>
         }
     </script>
