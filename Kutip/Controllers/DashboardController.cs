@@ -68,18 +68,21 @@ namespace Kutip.Controllers
             );
             viewModel.ScheduleLookup = scheduleLookup;
 
-            // Get bins with any schedule scheduled for today
-
+            // Get today's date
             viewModel.BinsScheduledToday = bins
-                .Where(bin =>
-                {
-                    var todaysSchedules = bin.Schedules
-                        .Where(s => s.ScheduledDay == (ScheduleDay)DateTime.Today.DayOfWeek)
-                        .ToList();
-
-                    return todaysSchedules != null && todaysSchedules.Count > 0;
-                })
-                .ToList();
+                 .Select(bin => new
+                 {
+                     Bin = bin,
+                     TodaysSchedule = bin.Schedules
+                        .Where(s => s.UpdatedAt.Date == today.Date &&
+                                     (s.Status == ScheduleStatus.Completed ||
+                                      s.Status == ScheduleStatus.Missed))
+                        .OrderByDescending(s => s.UpdatedAt)
+                        .FirstOrDefault()
+                  })
+                  .Where(x => x.TodaysSchedule != null)
+                  .Select(x => x.Bin)
+                  .ToList();
 
 
             // Populate dropdown data
@@ -95,63 +98,6 @@ namespace Kutip.Controllers
             viewModel.SelectedBinStatus = binStatusFilter;
             viewModel.SelectedTruckNo = truckNoFilter;
             viewModel.SelectedTruckStatus = truckStatusFilter;
-
-            // Generate sample chart data (replace with real logic later)
-            var currentYear = DateTime.Now.Year;
-
-            // Count bins with Completed pickups per month
-            var completedPickupCounts = _context.Schedules
-                .Where(s => s.Status == ScheduleStatus.Completed &&
-                            s.ScheduledDate.Year == currentYear)
-                .GroupBy(s => s.ScheduledDate.Month)
-                .ToDictionary(g => g.Key, g => g.Select(s => s.BinId).Distinct().Count());
-
-            // Count unique trucks used in pickups per month
-            var truckUsageCounts = _context.Schedules
-                .Where(s => s.ScheduledDate.Year == currentYear)
-                .GroupBy(s => s.ScheduledDate.Month)
-                .ToDictionary(g => g.Key, g => g.Select(s => s.TruckId).Distinct().Count());
-
-            List<string> labels = new List<string>();
-            List<int> completedPickupData = new List<int>();
-            List<int> truckUsageData = new List<int>();
-
-            for (int month = 1; month <= 12; month++)
-            {
-                var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(month);
-                labels.Add(monthName);
-
-                completedPickupData.Add(completedPickupCounts.GetValueOrDefault(month, 0));
-                truckUsageData.Add(truckUsageCounts.GetValueOrDefault(month, 0));
-            }
-
-            viewModel.MonthLabels = labels.ToArray();
-            viewModel.MonthlyCompletedPickups = completedPickupData.ToArray();
-            viewModel.MonthlyTrucksUsedForPickups = truckUsageData.ToArray();
-
-            var sevenDaysAgo = today.AddDays(-6); // Last 7 days including today
-
-            // Get all completed pickups in the last 7 days
-            var dailyPickups = _context.Schedules
-                .Where(s => s.Status == ScheduleStatus.Completed &&
-                            s.ScheduledDate >= sevenDaysAgo &&
-                            s.ScheduledDate <= today)
-                .GroupBy(s => s.ScheduledDate.Date)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-
-            List<int> counts = new List<int>();
-
-            for (int i = 0; i < 7; i++)
-            {
-                var date = sevenDaysAgo.AddDays(i);
-                labels.Add(date.ToString("ddd")); // e.g., Mon, Tue...
-                counts.Add(dailyPickups.GetValueOrDefault(date.Date, 0));
-            }
-
-            viewModel.DailyLabels = labels.ToArray();
-            viewModel.DailyPickupCounts = counts.ToArray();
-            viewModel.PickupsLast7Days = counts.Sum();
 
             return View(viewModel);
         }
@@ -238,50 +184,52 @@ namespace Kutip.Controllers
         ///END BIN
 
         ///PICKUP
-        public IActionResult PickupReportPreview(DateTime? startDate, DateTime? endDate, string preview = "false")
+        public IActionResult PickupReportPreview(DateTime? startDate, DateTime? endDate, string streetFilter = null, string preview = "false")
         {
-            var schedules = _context.Schedules
-                .Include(s => s.Truck)
-                .Include(s => s.Bin)
+            var query = _context.PickupEvents
+                .Include(e => e.Bin)
+                .Include(e => e.Truck)
                 .AsQueryable();
 
             if (startDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDate >= startDate.Value);
+                query = query.Where(e => e.EventRecordedAt >= startDate.Value);
 
             if (endDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDate <= endDate.Value);
+                query = query.Where(e => e.EventRecordedAt <= endDate.Value);
 
-            //Include both Completed and Missed
-            schedules = schedules.Where(s =>
-                s.Status == ScheduleStatus.Completed ||
-                s.Status == ScheduleStatus.Missed);
+            // ✅ Use partial match for street name
+            if (!string.IsNullOrEmpty(streetFilter))
+                query = query.Where(e => EF.Functions.Like(e.Bin.Street, $"%{streetFilter}%"));
+
+            var results = query.ToList();
 
             ViewBag.IsPreview = string.Equals(preview, "true", StringComparison.OrdinalIgnoreCase);
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.SelectedStreet = streetFilter;
 
-            return View("PickupReport", schedules.ToList());
+            return View("PickupReport", results);
         }
 
-        public IActionResult ExportPickupReport(DateTime? startDate, DateTime? endDate)
+        public IActionResult ExportPickupReport(DateTime? startDate, DateTime? endDate, string streetFilter = null)
         {
-            var schedules = _context.Schedules
-                .Include(s => s.Truck)
-                .Include(s => s.Bin)
+            var query = _context.PickupEvents
+                .Include(e => e.Bin)
+                .Include(e => e.Truck)
                 .AsQueryable();
 
             if (startDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDate >= startDate.Value);
+                query = query.Where(e => e.EventRecordedAt >= startDate.Value);
 
             if (endDate.HasValue)
-                schedules = schedules.Where(s => s.ScheduledDate <= endDate.Value);
+                query = query.Where(e => e.EventRecordedAt <= endDate.Value);
 
-            //Include both Completed and Missed
-            schedules = schedules.Where(s =>
-                s.Status == ScheduleStatus.Completed ||
-                s.Status == ScheduleStatus.Missed);
+            if (!string.IsNullOrEmpty(streetFilter))
+                query = query.Where(e => EF.Functions.Like(e.Bin.Street, $"%{streetFilter}%"));
 
-            return new ViewAsPdf("PickupReport", schedules.ToList())
+            var results = query.ToList();
+
+            return new ViewAsPdf("PickupReport", results)
             {
                 FileName = "PickupReport.pdf"
             };

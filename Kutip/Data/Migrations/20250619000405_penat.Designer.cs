@@ -4,6 +4,7 @@ using Kutip.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kutip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250619000405_penat")]
+    partial class penat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -461,8 +464,7 @@ namespace Kutip.Migrations
 
                     b.HasOne("Kutip.Models.Schedule", "RelatedSchedule")
                         .WithMany()
-                        .HasForeignKey("RelatedScheduleId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("RelatedScheduleId");
 
                     b.HasOne("Kutip.Models.Truck", "Truck")
                         .WithMany()

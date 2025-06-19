@@ -1,4 +1,4 @@
-﻿@model List<Kutip.Models.Schedule>
+﻿@model List<Kutip.Models.PickupEvent>
 @{
     Layout = null;
     var isPreview = ViewBag.IsPreview != null && (bool)ViewBag.IsPreview;
@@ -21,7 +21,12 @@
             <h2 class="mb-0">Pickup Report</h2>
             @if (isPreview)
             {
-                var exportUrl = Url.Action("ExportPickupReport", "Dashboard", new { startDate = startDate, endDate = endDate });
+                var exportUrl = Url.Action("ExportPickupReport", "Dashboard", new
+                {
+                    startDate = startDate,
+                    endDate = endDate,
+                    streetFilter = ViewBag.SelectedStreet
+                });
                 <a href="@exportUrl" target="_blank" class="text-decoration-none text-dark" title="Download PDF">
                     <i class="bi bi-download fs-4"></i>
                 </a>
@@ -32,14 +37,27 @@
         {
             <form method="get" asp-action="PickupReportPreview" asp-controller="Dashboard" class="row mb-3">
                 <input type="hidden" name="preview" value="true" />
+
                 <div class="col-md-3">
                     <label for="startDate" class="form-label">Start Date</label>
-                    <input type="date" id="startDate" name="startDate" class="form-control" value="@startDate" />
+                    <input type="date" id="startDate" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                 </div>
+
                 <div class="col-md-3">
                     <label for="endDate" class="form-label">End Date</label>
-                    <input type="date" id="endDate" name="endDate" class="form-control" value="@endDate" />
+                    <input type="date" id="endDate" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                 </div>
+
+                <div class="col-md-3">
+                    <label for="streetFilter" class="form-label">Search Street</label>
+                    <input type="text"
+                           id="streetFilter"
+                           name="streetFilter"
+                           class="form-control"
+                           placeholder="e.g. Main St"
+                           value="@ViewBag.SelectedStreet" />
+                </div>
+
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">Filter</button>
                 </div>
@@ -61,27 +79,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var s in Model)
+                    @foreach (var e in Model)
                     {
                         <tr>
-                            <td>@s.ScheduledDate.ToString("yyyy-MM-dd")</td>
-                            <td>@s.ScheduledDate.ToString("HH:mm")</td>
-                            <td>@s.Truck?.TruckNo</td>
-                            <td>@s.Truck?.DriverName</td>
-                            <td>@s.Truck?.Phone</td>
-                            <td>@s.Bin?.BinNo</td>
+                            <td>@e.EventRecordedAt.ToString("yyyy-MM-dd")</td>
+                            <td>@e.EventRecordedAt.ToString("HH:mm")</td>
+                            <td>@e.Truck?.TruckNo</td>
+                            <td>@e.Truck?.DriverName</td>
+                            <td>@e.Truck?.Phone</td>
+                            <td>@e.Bin?.BinNo</td>
                             <td>
-                                @(s.Bin != null
-                                    ? $"{s.Bin.Street}, {s.Bin.PostCode}, {s.Bin.City}, {s.Bin.State}"
-                                    : "-")
-                            </td>
-
-                            <td>
-                                @if (s.Status == ScheduleStatus.Completed)
+                                @(e.Bin != null
+                                                            ? $"{e.Bin.Street}, {e.Bin.PostCode}, {e.Bin.City}, {e.Bin.State}"
+                                                            : "-")
+                        </td>
+                        <td>
+                            @if (e.Status == ScheduleStatus.Completed)
                                 {
                                     <span class="badge bg-success">Completed</span>
                                 }
-                                else if (s.Status == ScheduleStatus.Missed)
+                                else if (e.Status == ScheduleStatus.Missed)
                                 {
                                     <span class="badge bg-danger">Missed</span>
                                 }
@@ -94,3 +111,20 @@
     </div>
 </body>
 </html>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Auto-submit when date or street input changes
+            $('#streetFilter').on('input', function () {
+                $(this).closest('form').submit();
+            });
+
+            // Optional: Submit on date change too
+            $('input[type="date"]').on('change', function () {
+                $(this).closest('form').submit();
+            });
+        });
+    </script>
+}
