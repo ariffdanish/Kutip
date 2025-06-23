@@ -4,7 +4,6 @@ using Kutip.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kutip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250619002617_FixScheduleDeleteBehavior")]
-    partial class FixScheduleDeleteBehavior
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,40 +177,6 @@ namespace Kutip.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Kutip.Models.PickupEvent", b =>
-                {
-                    b.Property<int>("PickupEventId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PickupEventId"));
-
-                    b.Property<DateTimeOffset>("EventRecordedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("RelatedBinId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RelatedTruckId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("PickupEventId");
-
-                    b.HasIndex("RelatedBinId");
-
-                    b.HasIndex("RelatedScheduleId");
-
-                    b.HasIndex("RelatedTruckId");
-
-                    b.ToTable("PickupEvents");
-                });
-
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
                 {
                     b.Property<int>("ScheduleId")
@@ -223,9 +186,6 @@ namespace Kutip.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScheduleId"));
 
                     b.Property<int>("BinId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BinId1")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -243,9 +203,6 @@ namespace Kutip.Migrations
                     b.Property<int>("TruckId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TruckId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -253,11 +210,7 @@ namespace Kutip.Migrations
 
                     b.HasIndex("BinId");
 
-                    b.HasIndex("BinId1");
-
                     b.HasIndex("TruckId");
-
-                    b.HasIndex("TruckId1");
 
                     b.ToTable("Schedules");
                 });
@@ -454,53 +407,19 @@ namespace Kutip.Migrations
                         .HasForeignKey("TruckId");
                 });
 
-            modelBuilder.Entity("Kutip.Models.PickupEvent", b =>
-                {
-                    b.HasOne("Kutip.Models.Bin", "Bin")
-                        .WithMany()
-                        .HasForeignKey("RelatedBinId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Kutip.Models.Schedule", "RelatedSchedule")
-                        .WithMany()
-                        .HasForeignKey("RelatedScheduleId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Kutip.Models.Truck", "Truck")
-                        .WithMany()
-                        .HasForeignKey("RelatedTruckId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Bin");
-
-                    b.Navigation("RelatedSchedule");
-
-                    b.Navigation("Truck");
-                });
-
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
                 {
                     b.HasOne("Kutip.Models.Bin", "Bin")
-                        .WithMany()
-                        .HasForeignKey("BinId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Kutip.Models.Bin", null)
                         .WithMany("Schedules")
-                        .HasForeignKey("BinId1");
+                        .HasForeignKey("BinId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Kutip.Models.Truck", "Truck")
-                        .WithMany()
-                        .HasForeignKey("TruckId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Kutip.Models.Truck", null)
                         .WithMany("Schedules")
-                        .HasForeignKey("TruckId1");
+                        .HasForeignKey("TruckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Bin");
 

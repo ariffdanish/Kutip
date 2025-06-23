@@ -1,4 +1,4 @@
-﻿@model List<Kutip.Models.PickupEvent>
+﻿@model List<Kutip.Models.Schedule>
 @{
     Layout = null;
     var isPreview = ViewBag.IsPreview != null && (bool)ViewBag.IsPreview;
@@ -82,8 +82,8 @@
                     @foreach (var e in Model)
                     {
                         <tr>
-                            <td>@e.EventRecordedAt.ToString("yyyy-MM-dd")</td>
-                            <td>@e.EventRecordedAt.ToString("HH:mm")</td>
+                            @*<td>@e.EventRecordedAt.ToString("yyyy-MM-dd")</td>*@
+                            @*<td>@e.EventRecordedAt.ToString("HH:mm")</td>*@
                             <td>@e.Truck?.TruckNo</td>
                             <td>@e.Truck?.DriverName</td>
                             <td>@e.Truck?.Phone</td>

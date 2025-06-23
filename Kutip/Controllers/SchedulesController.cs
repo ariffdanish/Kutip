@@ -150,6 +150,7 @@ namespace Kutip.Controllers
         public async Task<IActionResult> Edit(int id, Schedule schedule)
         {
             if (id != schedule.ScheduleId) return NotFound();
+
             if (!ModelState.IsValid)
             {
                 ViewBag.BinId = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
@@ -159,44 +160,8 @@ namespace Kutip.Controllers
                 return View(schedule);
             }
 
-            var existingSchedule = await _context.Schedules
-                .Include(s => s.Bin)
-                .Include(s => s.Truck)
-                .FirstOrDefaultAsync(s => s.ScheduleId == id);
-
-            if (existingSchedule == null) return NotFound();
-
-            existingSchedule.BinId = schedule.BinId;
-            existingSchedule.TruckId = schedule.TruckId;
-            existingSchedule.ScheduledDay = schedule.ScheduledDay;
-            existingSchedule.Status = schedule.Status;
-            existingSchedule.UpdatedAt = DateTimeOffset.Now;
-
-            // Only log pickup event if status changed to Completed or Missed
-            bool isPickupStatusChanged = existingSchedule.Status == ScheduleStatus.Completed ||
-                                          existingSchedule.Status == ScheduleStatus.Missed;
-
-            if (isPickupStatusChanged)
-            {
-                bool eventExists = await _context.PickupEvents
-                    .AnyAsync(e => e.RelatedScheduleId == existingSchedule.ScheduleId);
-
-                if (!eventExists)
-                {
-                    var pickupEvent = new PickupEvent
-                    {
-                        RelatedBinId = existingSchedule.BinId,
-                        RelatedTruckId = existingSchedule.TruckId,
-                        Status = existingSchedule.Status,
-                        RelatedScheduleId = existingSchedule.ScheduleId,
-                        EventRecordedAt = DateTimeOffset.Now
-                    };
-                    
-                    await _context.PickupEvents.AddAsync(pickupEvent);
-                }
-            }
-
-            _context.Update(existingSchedule);
+            schedule.UpdatedAt = DateTimeOffset.Now;
+            _context.Update(schedule);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Schedule updated successfully!";

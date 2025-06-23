@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Kutip.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CleanupPickupEvents : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -255,40 +255,6 @@ namespace Kutip.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "PickupEvents",
-                columns: table => new
-                {
-                    PickupEventId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RelatedBinId = table.Column<int>(type: "int", nullable: false),
-                    RelatedTruckId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    EventRecordedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    RelatedScheduleId = table.Column<int>(type: "int", nullable: true),
-                    BinId = table.Column<int>(type: "int", nullable: true),
-                    TruckId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PickupEvents", x => x.PickupEventId);
-                    table.ForeignKey(
-                        name: "FK_PickupEvents_Bin_BinId",
-                        column: x => x.BinId,
-                        principalTable: "Bin",
-                        principalColumn: "BinId");
-                    table.ForeignKey(
-                        name: "FK_PickupEvents_Schedules_RelatedScheduleId",
-                        column: x => x.RelatedScheduleId,
-                        principalTable: "Schedules",
-                        principalColumn: "ScheduleId");
-                    table.ForeignKey(
-                        name: "FK_PickupEvents_Trucks_TruckId",
-                        column: x => x.TruckId,
-                        principalTable: "Trucks",
-                        principalColumn: "TruckId");
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -334,21 +300,6 @@ namespace Kutip.Migrations
                 column: "TruckId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PickupEvents_BinId",
-                table: "PickupEvents",
-                column: "BinId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PickupEvents_RelatedScheduleId",
-                table: "PickupEvents",
-                column: "RelatedScheduleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PickupEvents_TruckId",
-                table: "PickupEvents",
-                column: "TruckId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Schedules_BinId",
                 table: "Schedules",
                 column: "BinId");
@@ -381,16 +332,13 @@ namespace Kutip.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "PickupEvents");
+                name: "Schedules");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "Schedules");
 
             migrationBuilder.DropTable(
                 name: "Bin");

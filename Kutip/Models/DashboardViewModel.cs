@@ -10,7 +10,7 @@ namespace Kutip.Models
 
         // reporting properties
         // For Pickup Report
-        public List<PickupEvent> PickupEventsToday { get; set; } 
+       
         //public List<string> AllStreetNames { get; set; }
         public string SelectedStreet { get; set; }
 

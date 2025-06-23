@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kutip.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250618232545_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250621140146_CleanupPickupEvents")]
+    partial class CleanupPickupEvents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -178,46 +178,6 @@ namespace Kutip.Migrations
                     b.HasKey("NotificationId");
 
                     b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("Kutip.Models.PickupEvent", b =>
-                {
-                    b.Property<int>("PickupEventId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PickupEventId"));
-
-                    b.Property<int?>("BinId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("EventRecordedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("RelatedBinId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RelatedTruckId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TruckId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PickupEventId");
-
-                    b.HasIndex("BinId");
-
-                    b.HasIndex("RelatedScheduleId");
-
-                    b.HasIndex("TruckId");
-
-                    b.ToTable("PickupEvents");
                 });
 
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
@@ -448,27 +408,6 @@ namespace Kutip.Migrations
                     b.HasOne("Kutip.Models.Truck", null)
                         .WithMany("Bins")
                         .HasForeignKey("TruckId");
-                });
-
-            modelBuilder.Entity("Kutip.Models.PickupEvent", b =>
-                {
-                    b.HasOne("Kutip.Models.Bin", "Bin")
-                        .WithMany()
-                        .HasForeignKey("BinId");
-
-                    b.HasOne("Kutip.Models.Schedule", "RelatedSchedule")
-                        .WithMany()
-                        .HasForeignKey("RelatedScheduleId");
-
-                    b.HasOne("Kutip.Models.Truck", "Truck")
-                        .WithMany()
-                        .HasForeignKey("TruckId");
-
-                    b.Navigation("Bin");
-
-                    b.Navigation("RelatedSchedule");
-
-                    b.Navigation("Truck");
                 });
 
             modelBuilder.Entity("Kutip.Models.Schedule", b =>

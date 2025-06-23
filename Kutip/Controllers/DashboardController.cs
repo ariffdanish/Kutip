@@ -226,59 +226,7 @@ namespace Kutip.Controllers
 
         ///END BIN
 
-        ///PICKUP
-        public IActionResult PickupReportPreview(DateTime? startDate, DateTime? endDate, string streetFilter = null, string preview = "false")
-        {
-            var query = _context.PickupEvents
-                .Include(e => e.Bin)
-                .Include(e => e.Truck)
-                .AsQueryable();
-
-            if (startDate.HasValue)
-                query = query.Where(e => e.EventRecordedAt >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(e => e.EventRecordedAt <= endDate.Value);
-
-            // ✅ Use partial match for street name
-            if (!string.IsNullOrEmpty(streetFilter))
-                query = query.Where(e => EF.Functions.Like(e.Bin.Street, $"%{streetFilter}%"));
-
-            var results = query.ToList();
-
-            ViewBag.IsPreview = string.Equals(preview, "true", StringComparison.OrdinalIgnoreCase);
-            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
-            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
-            ViewBag.SelectedStreet = streetFilter;
-
-            return View("PickupReport", results);
-        }
-
-        public IActionResult ExportPickupReport(DateTime? startDate, DateTime? endDate, string streetFilter = null)
-        {
-            var query = _context.PickupEvents
-                .Include(e => e.Bin)
-                .Include(e => e.Truck)
-                .AsQueryable();
-
-            if (startDate.HasValue)
-                query = query.Where(e => e.EventRecordedAt >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(e => e.EventRecordedAt <= endDate.Value);
-
-            if (!string.IsNullOrEmpty(streetFilter))
-                query = query.Where(e => EF.Functions.Like(e.Bin.Street, $"%{streetFilter}%"));
-
-            var results = query.ToList();
-
-            return new ViewAsPdf("PickupReport", results)
-            {
-                FileName = "PickupReport.pdf"
-            };
-        }
-
-        ///END PICKUP
+       
 
 
     }
