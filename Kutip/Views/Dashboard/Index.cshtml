@@ -222,10 +222,11 @@
                                         <tbody>
                                             @foreach (var bin in Model.Bins)
                                             {
-                                                <tr>
+                                                <tr data-binno="@bin.BinNo"
+                                                    data-lat="@bin.Latitude"
+                                                    data-lng="@bin.Longitude">
                                                     <td>@bin.BinNo</td>
                                                     <td>@($"{bin.Street}, {bin.PostCode}, {bin.City}, {bin.State}")</td>
-                                                    
                                                 </tr>
                                             }
                                         </tbody>
@@ -236,17 +237,11 @@
                             <!-- Map Section -->
                             <div class="col-md-6">
                                 <div class="mapcontainer">
-                                    <div id="bin-map"
-                                         class="w-100"
-                                         style="height: 400px"></div>
+                                    <div id="bin-map" class="w-100" style="height: 400px"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="row">
         <div class="col-md-4">
@@ -409,26 +404,73 @@
     <script src="~/assets/js/plugin/jsvectormap/world.js"></script>
 
     <!-- Initialize map -->
-    <script>
-        var map = L.map('bin-map').setView([1.5594, 103.6371], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',  {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+                            <!-- Scripts for the map and table click behavior -->
+                            <script>
+                                var map = L.map('bin-map').setView([1.5594, 103.6371], 15);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '© OpenStreetMap contributors'
+                                }).addTo(map);
 
-        @foreach (var bin in Model.Bins)
-        {
-            <text>
-                @{
-                    string status = bin.Schedules.FirstOrDefault()?.Status.ToString() ?? "Unscheduled";
-                    string truckNo = bin.Schedules.FirstOrDefault()?.Truck?.TruckNo ?? "None";
-                }
+                                // Store markers keyed by BinNo
+                                var markers = {};
+                            </script>
 
-                            L.marker([@bin.Latitude, @bin.Longitude])
-                                .addTo(map)
-                                .bindPopup(`<b>@bin.BinNo</b><br>Status: @status<br>Assigned Truck: @truckNo`);
-            </text>
-        }
-    </script>
+                            <!-- Markers generation from Model.Bins -->
+                            <script>
+                                @foreach (var bin in Model.Bins)
+                                {
+                                        <text>
+                                            @{
+                                                    var firstSchedule = bin.Schedules.FirstOrDefault();
+                                                    var status = firstSchedule != null
+                                                            ? firstSchedule.Status.ToString()
+                                                            : "Unscheduled";
+                                                    var truckNo = firstSchedule?.Truck?.TruckNo ?? "None";
+                                            }
+                                            var marker = L.marker([@bin.Latitude, @bin.Longitude])
+                                                .addTo(map)
+                                                .bindPopup(`<b>@bin.BinNo</b><br>Status: @status<br>Assigned Truck: @truckNo`);
+
+                                            markers["@bin.BinNo"] = marker;
+
+                                            marker.on('click', function() {
+                                                var currentCenter = map.getCenter();
+                                                var targetLat = @bin.Latitude;
+                                                var targetLng = @bin.Longitude;
+
+                                                // Only zoom if we are NOT already at this location
+                                                if (Math.abs(currentCenter.lat - targetLat) > 0.0001 || Math.abs(currentCenter.lng - targetLng) > 0.0001) {
+                                                    map.setView([targetLat, targetLng], 18);
+                                                }
+
+                                                // Always open the popup
+                                                marker.openPopup();
+                                            });
+                                        </text>
+                                }
+                            </script>
+
+
+                            <!-- Table click behavior -->
+                            <script>
+                                document.querySelectorAll('#binsTable tbody tr').forEach(function(row) {
+                                    row.addEventListener('click', function() {
+                                        var binNo = this.getAttribute('data-binno');
+                                        var lat = parseFloat(this.getAttribute('data-lat'));
+                                        var lng = parseFloat(this.getAttribute('data-lng'));
+
+                                        // Zoom map
+                                        map.setView([lat, lng], 18);
+
+                                        // Open associated marker popup
+                                        if (markers[binNo]) {
+                                            markers[binNo].openPopup();
+                                        }
+                                    });
+                                });
+                            </script>
+
+
 
 
     @* pagination recently pickup *@

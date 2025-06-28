@@ -104,25 +104,7 @@ namespace Kutip.Controllers
             return View(viewModel);
         }
 
-        //////////////////////////////////////////////////////////////
-        /// REPORTING
 
-
-        ///Truck
-        public IActionResult TruckReportPreviewWrapper(TruckStatus? truckStatusFilter)
-        {
-            var trucks = _context.Trucks.AsQueryable();
-
-            if (truckStatusFilter.HasValue)
-            {
-                trucks = trucks.Where(t => t.Status == truckStatusFilter.Value);
-            }
-
-            ViewBag.SelectedTruckStatus = truckStatusFilter;
-            ViewBag.AllTruckStatuses = Enum.GetValues(typeof(TruckStatus)).Cast<TruckStatus>().ToList();
-
-            return View("TruckReport", trucks.ToList());
-        }
         [Authorize]
         public async Task<IActionResult> Map()
         {
@@ -165,6 +147,27 @@ namespace Kutip.Controllers
                 return View(assignedBins);
             }
         }
+
+        //////////////////////////////////////////////////////////////
+        /// REPORTING
+
+
+        ///Truck
+        public IActionResult TruckReportPreviewWrapper(TruckStatus? truckStatusFilter)
+        {
+            var trucks = _context.Trucks.AsQueryable();
+
+            if (truckStatusFilter.HasValue)
+            {
+                trucks = trucks.Where(t => t.Status == truckStatusFilter.Value);
+            }
+
+            ViewBag.SelectedTruckStatus = truckStatusFilter;
+            ViewBag.AllTruckStatuses = Enum.GetValues(typeof(TruckStatus)).Cast<TruckStatus>().ToList();
+
+            return View("TruckReport", trucks.ToList());
+        }
+        
         public IActionResult ExportTruckPDF(TruckStatus? truckStatusFilter)
         {
             var trucks = _context.Trucks.AsQueryable();
@@ -226,7 +229,69 @@ namespace Kutip.Controllers
 
         ///END BIN
 
-       
+        ///Pickup report
+        public async Task<IActionResult> PickupReportPreview(
+     DateTime? startDate,
+     DateTime? endDate,
+     string streetFilter = null,
+     string preview = "false")
+        {
+            var query = _context.Schedules
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .AsQueryable();
+
+            // Filter for Completed and Missed only
+            query = query.Where(s => s.Status == ScheduleStatus.Completed || s.Status == ScheduleStatus.Missed);
+
+            // Optional: Also filter by date range
+            if (startDate.HasValue)
+                query = query.Where(s => s.UpdatedAt >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(s => s.UpdatedAt <= endDate.Value);
+
+            // Optional: Filter by street
+            if (!string.IsNullOrEmpty(streetFilter))
+                query = query.Where(s => EF.Functions.Like(s.Bin.Street, $"%{streetFilter}%"));
+
+            var results = await query.ToListAsync();
+
+            ViewBag.IsPreview = string.Equals(preview, "true", StringComparison.OrdinalIgnoreCase);
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.SelectedStreet = streetFilter;
+
+            return View("PickupReport", results);
+        }
+
+        public IActionResult ExportPickupReport(DateTime? startDate, DateTime? endDate, string streetFilter = null)
+        {
+            var query = _context.Schedules
+                .Include(s => s.Bin)
+                .Include(s => s.Truck)
+                .AsQueryable();
+
+            // ✅ Only Completed and Missed Schedules
+            query = query.Where(s => s.Status == ScheduleStatus.Completed || s.Status == ScheduleStatus.Missed);
+
+            if (startDate.HasValue)
+                query = query.Where(s => s.UpdatedAt >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(s => s.UpdatedAt <= endDate.Value);
+
+            if (!string.IsNullOrEmpty(streetFilter))
+                query = query.Where(s => EF.Functions.Like(s.Bin.Street, $"%{streetFilter}%"));
+
+            var results = query.ToList();
+
+            return new ViewAsPdf("PickupReport", results)
+            {
+                FileName = "PickupReport.pdf"
+            };
+        }
+
 
 
     }

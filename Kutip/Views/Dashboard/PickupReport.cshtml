@@ -15,7 +15,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 </head>
 <body class="bg-light">
-
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Pickup Report</h2>
@@ -32,7 +31,6 @@
                 </a>
             }
         </div>
-
         @if (isPreview)
         {
             <form method="get" asp-action="PickupReportPreview" asp-controller="Dashboard" class="row mb-3">
@@ -75,19 +73,19 @@
                         <th>Driver Phone</th>
                         <th>Bin</th>
                         <th>Location</th>
-                        <th>Status</th> <!-- Added -->
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var e in Model)
                     {
                         <tr>
-                            @*<td>@e.EventRecordedAt.ToString("yyyy-MM-dd")</td>*@
-                            @*<td>@e.EventRecordedAt.ToString("HH:mm")</td>*@
-                            <td>@e.Truck?.TruckNo</td>
-                            <td>@e.Truck?.DriverName</td>
-                            <td>@e.Truck?.Phone</td>
-                            <td>@e.Bin?.BinNo</td>
+                            <td>@e.UpdatedAt.ToString("yyyy-MM-dd")</td>
+                            <td>@e.UpdatedAt.ToString("HH:mm")</td>
+                            <td>@(e.Truck?.TruckNo ?? "-")</td>
+                            <td>@(e.Truck?.DriverName ?? "-")</td>
+                            <td>@(e.Truck?.Phone ?? "-")</td>
+                            <td>@(e.Bin?.BinNo ?? "-")</td>
                             <td>
                                 @(e.Bin != null
                                                             ? $"{e.Bin.Street}, {e.Bin.PostCode}, {e.Bin.City}, {e.Bin.State}"
@@ -101,6 +99,10 @@
                                 else if (e.Status == ScheduleStatus.Missed)
                                 {
                                     <span class="badge bg-danger">Missed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pending</span>
                                 }
                             </td>
                         </tr>
