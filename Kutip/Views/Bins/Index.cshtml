@@ -27,8 +27,8 @@
                                     <i class="fas fa-plus"></i> Create Bin
                                 </a>
 
-                                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#scanModal">
-                                    <i class="fas fa-camera"></i> Scan Bin
+                                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('@Url.Action("DeleteBins", "Bins")')">
+                                    Delete Bins
                                 </button>
                             </div>
                             

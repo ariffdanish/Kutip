@@ -75,7 +75,25 @@ namespace Kutip.Controllers
             return View("MyBin", schedules);
         }
 
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeleteBins()
+        {
+            try
+            {
+                var allBins = _context.Bin.ToList();
+                _context.Bin.RemoveRange(allBins);
+                _context.SaveChanges();
 
+                TempData["Success"] = "All bins have been deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while deleting bins.";
+                // Log exception (ex) here if using logging framework
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
 
 
         [Authorize(Roles = "Admin")]
