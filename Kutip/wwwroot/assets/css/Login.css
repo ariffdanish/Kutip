@@ -10,6 +10,7 @@ body {
     font-family: 'Public Sans', sans-serif;
     color: #f1f1f1;
     flex-direction: column;
+    padding: 20px 10px;
 }
 
 @keyframes gradientBG {
@@ -47,7 +48,6 @@ body {
         box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
     }
 
-    /* === Logo inside wrapper === */
     .logo-wrapper img {
         height: 80px;
         object-fit: contain;
@@ -64,7 +64,7 @@ body {
     border-radius: 25px;
     max-width: 600px;
     width: 100%;
-    margin-bottom: 60px;
+    margin-bottom: 20px;
     backdrop-filter: blur(8px);
     background: rgba(255, 255, 255, 0.15);
     box-shadow: 0 12px 60px rgba(0, 0, 0, 0.4);
@@ -165,4 +165,23 @@ label {
     .account-box .text-center a:hover {
         color: #3b5998;
         text-decoration: underline;
+    }
+
+/* === Footer Wrapper === */
+.footer-wrapper {
+    padding: 15px 20px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    color: #f1f1f1;
+    font-size: 0.9rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+    .footer-wrapper span {
+        display: block;
+        margin-bottom: 3px;
     }
