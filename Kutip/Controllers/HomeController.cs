@@ -26,6 +26,10 @@ namespace Kutip.Controllers
                 {
                     return RedirectToAction("Index", "Dashboard"); // ?? Redirect Admin to Dashboard
                 }
+
+
+                // All other authenticated users go to MySchedule
+                return RedirectToAction("MySchedule", "Schedules");
             }
 
             return View();

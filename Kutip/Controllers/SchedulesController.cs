@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
@@ -462,11 +463,26 @@ namespace Kutip.Controllers
             string detectedPlate;
             try
             {
-                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
-                using var img = Pix.LoadFromFile(filePath);
-                engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-                using var page = engine.Process(img, PageSegMode.SingleBlock);
-                detectedPlate = page.GetText().Trim();
+                string pythonScriptPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "detect_and_ocr.py"));
+                string yolov8ModelPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "yolov8-license-plates.pt"));
+
+                // Arguments for Python script
+                string arguments = $"\"{filePath}\" \"{yolov8ModelPath}\"";
+
+                var processStartInfo = new ProcessStartInfo()
+                {
+                    FileName = "python",
+                    Arguments = $"{pythonScriptPath} {arguments}",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var process = new Process() { StartInfo = processStartInfo };
+                process.Start();
+
+                detectedPlate = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
             }
             catch (Exception ex)
             {
@@ -474,8 +490,18 @@ namespace Kutip.Controllers
             }
 
             // Step 3: Clean up OCR output
-            detectedPlate = detectedPlate.ToUpper().Trim();
-            detectedPlate = Regex.Replace(detectedPlate, @"[^A-Z0-9\\-]", "");
+
+            // Extract only the part starting with BIN and up to 8 characters max (or as needed)
+            var match = Regex.Match(detectedPlate, @"BIN[A-Z0-9]{1,8}");
+
+            if (match.Success)
+            {
+                detectedPlate = match.Value;
+            }
+            else
+            {
+                detectedPlate = string.Empty; // or keep original if fallback is needed
+            }
 
             if (string.IsNullOrWhiteSpace(detectedPlate))
             {
