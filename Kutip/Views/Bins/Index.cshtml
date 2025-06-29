@@ -22,14 +22,16 @@
                         <h4 class="card-title mb-0">Bin List</h4>
                         @if (!isTruckDriver)
                         {
-                            <a asp-action="Create" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus"></i> Create Bin
-                            </a>
+                            <div>
+                                <a asp-action="Create" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> Create Bin
+                                </a>
 
-                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#scanModal">
-                                <i class="fas fa-camera"></i> Scan Bin
-                            </button>
-
+                                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#scanModal">
+                                    <i class="fas fa-camera"></i> Scan Bin
+                                </button>
+                            </div>
+                            
                         }
                     </div>
 

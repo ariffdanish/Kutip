@@ -1,126 +1,168 @@
-﻿/* Background animation */
+﻿/* === Dark animated background === */
 body {
-    background: linear-gradient(-45deg, #5A6CF3, #6EDCD9, #FDB99B, #FF6B6B);
+    background: linear-gradient(-45deg, #121212, #1d2b64, #1e3c72, #2a5298);
     background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    animation: gradientBG 18s ease infinite;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Public Sans', sans-serif;
+    color: #f1f1f1;
+    flex-direction: column;
 }
 
 @keyframes gradientBG {
     0% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
+
     100% {
         background-position: 0% 50%;
     }
 }
 
-/* Wrapper with padding and subtle shadow */
-.login-wrapper {
-    padding: 40px 20px;
-    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.15);
+/* === Logo wrapper styled like login container === */
+.logo-wrapper {
+    padding: 20px;
     border-radius: 25px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(6px);
     max-width: 600px;
-    margin: 60px auto;
+    width: 100%;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     transition: box-shadow 0.3s ease;
 }
 
-    /* Optional hover effect for wrapper */
-    .login-wrapper:hover {
-        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.25);
+    .logo-wrapper:hover {
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
     }
 
-/* Card container animation */
-/* Card container size and animation */
+    /* === Logo inside wrapper === */
+    .logo-wrapper img {
+        height: 80px;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+        .logo-wrapper img:hover {
+            transform: scale(1.05);
+        }
+
+/* === Login wrapper (frosted box) === */
+.login-wrapper {
+    padding: 40px 20px;
+    border-radius: 25px;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 60px;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 60px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 0.3s ease;
+}
+
+    .login-wrapper:hover {
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+    }
+
+/* === Login card === */
 .account-box .card {
     width: 500px;
-    max-width: 95%; /* Responsive fallback on smaller screens */
+    max-width: 95%;
     margin: auto;
     border: none;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
-    animation: fadeInUp 0.8s ease-out;
-    
+    background: #ffffff;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.7s ease-out;
 }
 
 @keyframes fadeInUp {
     0% {
         opacity: 0;
-        transform: translateY(40px);
+        transform: translateY(30px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Input focus styles */
-.form-floating .form-control:focus {
-    border-color: #5A6CF3;
-    box-shadow: 0 0 0 0.25rem rgba(90, 108, 243, 0.25);
+/* === Inputs === */
+.form-floating .form-control {
+    border-radius: 10px;
 }
 
-/* Labels */
+    .form-floating .form-control:focus {
+        border-color: #4a69bd;
+        box-shadow: 0 0 0 0.25rem rgba(74, 105, 189, 0.25);
+    }
+
+/* === Labels === */
 label {
     font-weight: 500;
     color: #333;
 }
 
-/* Validation */
+/* === Validation text === */
 .text-danger {
     font-size: 0.85rem;
 }
 
-/* Buttons */
+/* === Primary button === */
 .btn-primary {
-    background: #5A6CF3;
-    border-color: #5A6CF3;
+    background: #4a69bd;
+    border-color: #4a69bd;
     font-weight: 600;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.btn-primary:hover {
-    background: #4A5DE2;
-    transform: translateY(-2px);
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-/* External login buttons */
-.btn-outline-dark {
     transition: all 0.3s ease;
 }
 
-.btn-outline-dark:hover {
-    background-color: #333;
-    color: #fff;
-    transform: scale(1.02);
+    .btn-primary:hover {
+        background: #3b5998;
+        transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.97);
+    }
+
+/* === External login buttons === */
+.btn-outline-dark {
+    color: #333;
+    background-color: #fff;
+    border-color: #bbb;
+    transition: all 0.3s ease;
 }
 
-/* Card titles */
+    .btn-outline-dark:hover {
+        background-color: #2c3e50;
+        color: #fff;
+    }
+
+/* === Card title icons === */
 .card-title i {
-    color: #5A6CF3;
+    color: #4a69bd;
 }
 
-/* Center text links */
+/* === Centered links === */
 .account-box .text-center a {
-    color: #5A6CF3;
+    color: #4a69bd;
     font-weight: 500;
     transition: color 0.2s ease;
 }
 
-.account-box .text-center a:hover {
-    color: #3F51B5;
-    text-decoration: underline;
-}
+    .account-box .text-center a:hover {
+        color: #3b5998;
+        text-decoration: underline;
+    }
