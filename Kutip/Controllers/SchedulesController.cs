@@ -41,7 +41,24 @@ namespace Kutip.Controllers
                 .ToListAsync();
             return View(schedules);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkDone(int scheduleId, string returnUrl)
+        {
+            var schedule = await _context.Schedules
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
 
+            if (schedule != null)
+            {
+                // Update status to completed
+                schedule.Status = ScheduleStatus.Completed;
+                _context.Schedules.Update(schedule);
+                await _context.SaveChangesAsync();
+            }
+
+            // Redirect back to the same page
+            return RedirectToAction("MyBin", "Bins");
+        }
 
         [Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()

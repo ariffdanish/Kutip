@@ -61,22 +61,26 @@
                                         <td>
                                             @if (isTruckDriver)
                                             {
-                                                <form method="post" asp-controller="Schedules" asp-action="MarkDone" class="d-inline" onsubmit="return confirm('Mark schedule @schedule.ScheduleId as DONE?');">
+                                                <!-- DONE Button -->
+                                                <button type="button" class="btn btn-success btn-sm"
+                                                        onclick="confirmDone('@Url.Action("MarkDone", "Schedules")', @schedule.ScheduleId)">
+                                                    DONE
+                                                </button>
+
+                                                <!-- ISSUE Button -->
+                                                <form method="post" asp-controller="Schedules" asp-action="ReportIssue" class="d-inline ms-1">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
-                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
-                                                    <button type="submit" class="btn btn-success btn-sm" title="Mark as Done">
-                                                        <i class="fas fa-check"></i> DONE
+                                                    <input type="hidden" name="returnUrl" value="@(Uri.EscapeDataString($"{Context.Request.Path}{Context.Request.QueryString}"))" />
+                                                    <button type="button" class="btn btn-danger btn-sm" title="Report Issue"
+                                                            onclick="confirmIssue(this.form)">
+                                                        <i class="fas fa-exclamation-triangle"></i> ISSUE
                                                     </button>
                                                 </form>
 
-                                                <form method="post" asp-controller="Schedules" asp-action="ReportIssue" class="d-inline ms-1" onsubmit="return confirm('Report ISSUE for schedule @schedule.ScheduleId?');">
+                                                <!-- Anti-Forgery Token for JavaScript Usage -->
+                                                <form>
                                                     @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
-                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path + @Context.Request.QueryString" />
-                                                    <button type="submit" class="btn btn-danger btn-sm" title="Report Issue">
-                                                        <i class="fas fa-exclamation-triangle"></i> ISSUE
-                                                    </button>
                                                 </form>
                                             }
                                             else
@@ -84,6 +88,7 @@
                                                 <span class="text-muted">Not Authorized</span>
                                             }
                                         </td>
+                                      
                                     </tr>
                                 }
                             </tbody>
