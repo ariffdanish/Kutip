@@ -509,7 +509,7 @@ namespace Kutip.Controllers
 
             if (match.Success)
             {
-                detectedPlate = match.Value;
+                detectedPlate = match.Value.Replace('O', '0').Replace('o', '0');
             }
             else
             {
@@ -554,16 +554,25 @@ namespace Kutip.Controllers
             }
 
             // Step 6: Find today's schedule for this bin and truck
-            var dotnetDay = DateTime.Now.DayOfWeek;
-            int adjustedDay = ((int)dotnetDay + 6) % 7; // Shift Sunday from 0 → 6
-            var todayDay = (ScheduleDay)adjustedDay;
+            var today = DateTime.Now.DayOfWeek;
+            var scheduleDay = today switch
+            {
+                DayOfWeek.Monday => ScheduleDay.Monday,
+                DayOfWeek.Tuesday => ScheduleDay.Tuesday,
+                DayOfWeek.Wednesday => ScheduleDay.Wednesday,
+                DayOfWeek.Thursday => ScheduleDay.Thursday,
+                DayOfWeek.Friday => ScheduleDay.Friday,
+                DayOfWeek.Saturday => ScheduleDay.Saturday,
+                DayOfWeek.Sunday => ScheduleDay.Sunday,
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
 
             var schedule = await _context.Schedules
                 .FirstOrDefaultAsync(s =>
                     s.BinId == bin.BinId &&
                     s.TruckId == truck.TruckId &&
-                    s.ScheduledDay == todayDay);
+                    s.ScheduledDay == scheduleDay);
 
             if (schedule == null)
             {

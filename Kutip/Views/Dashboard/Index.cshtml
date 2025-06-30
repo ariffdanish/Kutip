@@ -10,10 +10,8 @@
     );
 
     var systemDay = malaysiaTime.DayOfWeek;
-    int adjustedDay = ((int)systemDay + 6) % 7; // Shift Sunday (0) to 6, Monday (1) to 0, etc.
-
-    var today = (Kutip.Models.ScheduleDay)adjustedDay;
-
+    var dotnetDay = malaysiaTime.DayOfWeek;
+    var today = (Kutip.Models.ScheduleDay)dotnetDay;
 
     var binsScheduledToday = Model.Bins
         .Where(b => b.Schedules != null &&
