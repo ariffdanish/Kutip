@@ -159,409 +159,422 @@
 
         <hr />
 
-        <div class="row">
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-info bubble-shadow-small">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Total Bins</p>
-                                    <h4 class="card-title">@Model.TotalBins</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-info bubble-shadow-small">
-                                    <i class="fas fa-truck"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Total Trucks</p>
-                                    <h4 class="card-title">@Model.TotalTrucks</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-warning bubble-shadow-small">
-                                    <i class="fas fa-wrench"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Trucks Maintenance</p>
-                                    <h4 class="card-title">@Model.TrucksUnderMaintenance</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-warning bubble-shadow-small">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Working Trucks Today</p>
-                                    <h4 class="card-title">@Model.TrucksAssignedToday</h4>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-danger bubble-shadow-small">
-                                    <i class="fas fa-times-circle"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Missed Pickups Today</p>
-                                    <h4 class="card-title">@Model.MissedPickupsToday</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-warning bubble-shadow-small">
-                                    <i class="fas fa-truck-loading"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Idle Trucks Today</p>
-                                    <h4 class="card-title">@Model.IdleTrucksToday</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-success bubble-shadow-small">
-                                    <i class="fas fa-percent"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Completion Rate Today</p>
-                                    <h4 class="card-title">@Model.CompletionRate.ToString("F1")%</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="card card-stats card-round card-hover">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-icon">
-                                <div class="icon-big text-center icon-danger bubble-shadow-small animate__animated animate__bounceIn">
-                                    <i class="fas fa-ban"></i>
-                                </div>
-                            </div>
-                            <div class="col col-stats ms-3 ms-sm-0">
-                                <div class="numbers">
-                                    <p class="card-category">Inactive Bins</p>
-                                    <h4 class="card-title">@Model.InactiveBins</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-       </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card card-round">
-                    <div class="card-header">
-                        <div class="card-head-row card-tools-still-right">
-                            <h4 class="card-title">@today Bins Tracking</h4>
-                            <div class="card-tools">
-                                <button class="btn btn-icon btn-link btn-primary btn-xs">
-                                    <span class="fa fa-angle-down"></span>
-                                </button>
-                                <button class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card">
-                                    <span class="fa fa-sync-alt"></span>
-                                </button>
-                                <button class="btn btn-icon btn-link btn-primary btn-xs">
-                                    <span class="fa fa-times"></span>
-                                </button>
-                            </div>
-                        </div>
-                        <p class="card-category">
-                            Map of the distribution of bins
-                        </p>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="table-scroll-container">
-                                    <table id="binsTable" class="table table-hover table-sales">
-                                        <thead>
-                                            <tr>
-                                                <th class="sortable-header" data-column="binno">Bin Number</th>
-                                                <th class="sortable-header" data-column="location">Location</th>
-                                                <th class="sortable-header" data-column="location">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (binsScheduledToday.Any())
-                                            {
-                                                foreach (var bin in binsScheduledToday)
-                                                {
-                                                    var scheduleToday = bin.Schedules
-                                                    .FirstOrDefault(s => s.ScheduledDay == today);
-
-                                                    string badgeClass = "badge bg-secondary";
-                                                    string statusText = "Unknown";
-
-                                                    if (scheduleToday != null)
-                                                    {
-                                                        switch (scheduleToday.Status)
-                                                        {
-                                                            case Kutip.Models.ScheduleStatus.Completed:
-                                                                badgeClass = "badge bg-success";
-                                                                statusText = "Completed";
-                                                                break;
-                                                            case Kutip.Models.ScheduleStatus.Missed:
-                                                                badgeClass = "badge bg-danger";
-                                                                statusText = "Missed";
-                                                                break;
-                                                            default:
-                                                                badgeClass = "badge bg-primary";
-                                                                statusText = "Pending";
-                                                                break;
-                                                        }
-                                                    }
-
-                                                    <tr data-binno="@bin.BinNo"
-                                                        data-lat="@bin.Latitude"
-                                                        data-lng="@bin.Longitude">
-                                                        <td>@bin.BinNo</td>
-                                                        <td>@($"{bin.Street}, {bin.PostCode}, {bin.City}, {bin.State}")</td>
-                                                        <td>
-                                                            <span class="@badgeClass">@statusText</span>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <tr>
-                                                    <td colspan="2" class="text-center text-muted">
-                                                        No bins scheduled for today (e.g., Sunday holiday).
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Map Section -->
-                            <div class="col-md-6">
-                                <div class="mapcontainer">
-                                    <div id="bin-map" class="w-100" style="height: 400px"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card card-round shadow">
-                <div class="card-body">
-                    <div class="card-head-row card-tools-still-right">
-                        <div class="card-title">Trucks</div>
-                    </div>
-                        <div class="card-list py-4" id="truck-list">
-                            @foreach (var truck in Model.Trucks)
-                            {
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <span class="avatar-title rounded-circle border border-white bg-primary">
-                                            @truck.TruckNo.Substring(0, 1)
-                                        </span>
+        <div class="card-body card-round shadow">
+            <div class="row">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-info bubble-shadow-small">
+                                        <i class="fas fa-trash"></i>
                                     </div>
-
-                                    <div class="info-user ms-3">
-                                        <div class="username">Number Plate : @truck.TruckNo</div>
-                                        <div class="status">Driver : @truck.DriverName</div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Total Bins</p>
+                                        <h4 class="card-title">@Model.TotalBins</h4>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-info bubble-shadow-small">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Total Trucks</p>
+                                        <h4 class="card-title">@Model.TotalTrucks</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                        <i class="fas fa-wrench"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Trucks Maintenance</p>
+                                        <h4 class="card-title">@Model.TrucksUnderMaintenance</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Trucks Today</p>
+                                        <h4 class="card-title">@Model.TrucksAssignedToday</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-danger bubble-shadow-small">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Missed Today</p>
+                                        <h4 class="card-title">@Model.MissedPickupsToday</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                    @* ✅ Format the phone number correctly here *@
-                                    @{
-                                        var phone = truck.Phone?.Trim();
-                                        var whatsappNumber = !string.IsNullOrEmpty(phone) && phone.StartsWith("0")
-                                        ? "60" + phone.Substring(1)
-                                        : phone;
-                                    }
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                        <i class="fas fa-truck-loading"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Idle Trucks Today</p>
+                                        <h4 class="card-title">@Model.IdleTrucksToday</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                    @if (!string.IsNullOrEmpty(whatsappNumber))
-                                    {
-                                        <button class="btn btn-icon btn-link op-8 me-1"
-                                                onclick="openWhatsApp('@whatsappNumber', '@truck.TruckNo')">
-                                            <i class="far fa-envelope"></i>
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No WhatsApp</span>
-                                    }
-
-                                    <a href="@Url.Action("Index", "AdminUser")" class="btn btn-icon btn-link btn-danger op-8">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-success bubble-shadow-small">
+                                        <i class="fas fa-percent"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Completion Today</p>
+                                        <h4 class="card-title">@Model.CompletionRate.ToString("F1")%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round card-hover">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-danger bubble-shadow-small animate__animated animate__bounceIn">
                                         <i class="fas fa-ban"></i>
-                                    </a>
+                                    </div>
                                 </div>
-                            }
-                     </div>
-                        <div class="pagination-controls text-center mt-3">
-                            <button id="prevPage" class="btn btn-outline-primary btn-sm me-2">Previous</button>
-                            <span id="pageInfo" class="me-2"></span>
-                            <button id="nextPage" class="btn btn-outline-primary btn-sm">Next</button>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Inactive Bins</p>
+                                        <h4 class="card-title">@Model.InactiveBins</h4>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-8">
-            <div class="card card-round shadow">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-center w-100">
-                            <h5 class="card-title mb-0">Recent Pickup History</h5>
+        
+        <br />
+
+        <div class="card-body card-round shadow">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-round">
+                        <div class="card-header">
+                            <div class="card-head-row card-tools-still-right">
+                                <h4 class="card-title">@today Bins Tracking</h4>
+                                <div class="card-tools">
+                                    <button class="btn btn-icon btn-link btn-primary btn-xs">
+                                        <span class="fa fa-angle-down"></span>
+                                    </button>
+                                    <button class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card">
+                                        <span class="fa fa-sync-alt"></span>
+                                    </button>
+                                    <button class="btn btn-icon btn-link btn-primary btn-xs">
+                                        <span class="fa fa-times"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-category">
+                                Map of the distribution of bins
+                            </p>
                         </div>
-                    </div>
-
-
-                <!-- Scrollable Table Container -->
-                <div class="table-responsive">
-                    <table id="pickupHistoryTable" class="table table-hover align-middle mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Bin Number</th>
-                                <th class="text-end">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.BinsScheduledToday != null && Model.BinsScheduledToday.Any())
-                            {
-                                @foreach (var bin in Model.BinsScheduledToday)
-                                {
-                                    // Get the schedule that was already filtered in the controller
-                                    var todaysSchedule = bin.Schedules
-                                    .Where(s => s.UpdatedAt.Date == DateTime.Today &&
-                                    (s.Status == ScheduleStatus.Completed ||
-                                    s.Status == ScheduleStatus.Missed))
-                                    .OrderByDescending(s => s.UpdatedAt)
-                                    .FirstOrDefault();
-
-                                    <tr>
-                                        <td>
-                                            <button class="btn btn-icon btn-round btn-default btn-sm me-2">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            @bin.BinNo
-                                        </td>
-                                        <td class="text-end">
-                                            @{
-                                                string badgeClass;
-                                                string statusText;
-
-                                                if (todaysSchedule != null)
+                        <div class="card-body shadow">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="table-scroll-container">
+                                        <table id="binsTable" class="table table-hover table-sales">
+                                            <thead>
+                                                <tr>
+                                                    <th class="sortable-header" data-column="binno">Bin Number</th>
+                                                    <th class="sortable-header" data-column="location">Location</th>
+                                                    <th class="sortable-header" data-column="location">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (binsScheduledToday.Any())
                                                 {
-                                                    switch (todaysSchedule.Status)
+                                                    foreach (var bin in binsScheduledToday)
                                                     {
-                                                        case ScheduleStatus.Completed:
-                                                            badgeClass = "badge bg-success";
-                                                            statusText = "Completed";
-                                                            break;
-                                                        case ScheduleStatus.Missed:
-                                                            badgeClass = "badge bg-danger";
-                                                            statusText = "Missed";
-                                                            break;
-                                                        default:
-                                                            badgeClass = "badge bg-secondary";
-                                                            statusText = "Unknown";
-                                                            break;
+                                                        var scheduleToday = bin.Schedules
+                                                        .FirstOrDefault(s => s.ScheduledDay == today);
+
+                                                        string badgeClass = "badge bg-secondary";
+                                                        string statusText = "Unknown";
+
+                                                        if (scheduleToday != null)
+                                                        {
+                                                            switch (scheduleToday.Status)
+                                                            {
+                                                                case Kutip.Models.ScheduleStatus.Completed:
+                                                                    badgeClass = "badge bg-success";
+                                                                    statusText = "Completed";
+                                                                    break;
+                                                                case Kutip.Models.ScheduleStatus.Missed:
+                                                                    badgeClass = "badge bg-danger";
+                                                                    statusText = "Missed";
+                                                                    break;
+                                                                default:
+                                                                    badgeClass = "badge bg-primary";
+                                                                    statusText = "Pending";
+                                                                    break;
+                                                            }
+                                                        }
+
+                                                        <tr data-binno="@bin.BinNo"
+                                                            data-lat="@bin.Latitude"
+                                                            data-lng="@bin.Longitude">
+                                                            <td>@bin.BinNo</td>
+                                                            <td>@($"{bin.Street}, {bin.PostCode}, {bin.City}, {bin.State}")</td>
+                                                            <td>
+                                                                <span class="@badgeClass">@statusText</span>
+                                                            </td>
+                                                        </tr>
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    badgeClass = "badge bg-light text-dark";
-                                                    statusText = "No Schedule Today";
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">
+                                                            No bins scheduled for today (e.g., Sunday holiday).
+                                                        </td>
+                                                    </tr>
                                                 }
-                                            }
-                                            <span class="@badgeClass">@statusText</span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="2" class="text-center">No bins scheduled for today.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
 
-                <!-- Pagination Controls -->
-                <nav aria-label="Page navigation example" class="mt-3 px-3 pb-3">
-                    <ul class="pagination justify-content-center" id="paginationControls"></ul>
-                </nav>
+                                <!-- Map Section -->
+                                <div class="col-md-6">
+                                    <div class="mapcontainer">
+                                        <div id="bin-map" class="w-100" style="height: 400px"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+        
+        <br />
+
+
+        <div class="card-body card-round shadow">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card card-round shadow">
+                        <div class="card-body">
+                            <div class="card-head-row card-tools-still-right">
+                                <div class="card-title">Trucks</div>
+                            </div>
+                            <div class="card-list py-4" id="truck-list">
+                                @foreach (var truck in Model.Trucks)
+                                {
+                                    <div class="item-list">
+                                        <div class="avatar">
+                                            <span class="avatar-title rounded-circle border border-white bg-primary">
+                                                @truck.TruckNo.Substring(0, 1)
+                                            </span>
+                                        </div>
+
+                                        <div class="info-user ms-3">
+                                            <div class="username">Number Plate : @truck.TruckNo</div>
+                                            <div class="status">Driver : @truck.DriverName</div>
+                                        </div>
+
+                                        @* ✅ Format the phone number correctly here *@
+                                        @{
+                                            var phone = truck.Phone?.Trim();
+                                            var whatsappNumber = !string.IsNullOrEmpty(phone) && phone.StartsWith("0")
+                                            ? "60" + phone.Substring(1)
+                                            : phone;
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(whatsappNumber))
+                                        {
+                                            <button class="btn btn-icon btn-link op-8 me-1"
+                                                    onclick="openWhatsApp('@whatsappNumber', '@truck.TruckNo')">
+                                                <i class="far fa-envelope"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No WhatsApp</span>
+                                        }
+
+                                        <a href="@Url.Action("Index", "AdminUser")" class="btn btn-icon btn-link btn-danger op-8">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="pagination-controls text-center mt-3">
+                                <button id="prevPage" class="btn btn-outline-primary btn-sm me-2">Previous</button>
+                                <span id="pageInfo" class="me-2"></span>
+                                <button id="nextPage" class="btn btn-outline-primary btn-sm">Next</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card card-round shadow">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-center w-100">
+                                <h5 class="card-title mb-0">Recent Pickup History</h5>
+                            </div>
+                        </div>
+
+
+                        <!-- Scrollable Table Container -->
+                        <div class="table-responsive">
+                            <table id="pickupHistoryTable" class="table table-hover align-middle mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Bin Number</th>
+                                        <th class="text-end">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.BinsScheduledToday != null && Model.BinsScheduledToday.Any())
+                                    {
+                                        @foreach (var bin in Model.BinsScheduledToday)
+                                        {
+                                            // Get the schedule that was already filtered in the controller
+                                            var todaysSchedule = bin.Schedules
+                                            .Where(s => s.UpdatedAt.Date == DateTime.Today &&
+                                            (s.Status == ScheduleStatus.Completed ||
+                                            s.Status == ScheduleStatus.Missed))
+                                            .OrderByDescending(s => s.UpdatedAt)
+                                            .FirstOrDefault();
+
+                                            <tr>
+                                                <td>
+                                                    <button class="btn btn-icon btn-round btn-default btn-sm me-2">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    @bin.BinNo
+                                                </td>
+                                                <td class="text-end">
+                                                    @{
+                                                        string badgeClass;
+                                                        string statusText;
+
+                                                        if (todaysSchedule != null)
+                                                        {
+                                                            switch (todaysSchedule.Status)
+                                                            {
+                                                                case ScheduleStatus.Completed:
+                                                                    badgeClass = "badge bg-success";
+                                                                    statusText = "Completed";
+                                                                    break;
+                                                                case ScheduleStatus.Missed:
+                                                                    badgeClass = "badge bg-danger";
+                                                                    statusText = "Missed";
+                                                                    break;
+                                                                default:
+                                                                    badgeClass = "badge bg-secondary";
+                                                                    statusText = "Unknown";
+                                                                    break;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            badgeClass = "badge bg-light text-dark";
+                                                            statusText = "No Schedule Today";
+                                                        }
+                                                    }
+                                                    <span class="@badgeClass">@statusText</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="2" class="text-center">No bins scheduled for today.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <nav aria-label="Page navigation example" class="mt-3 px-3 pb-3">
+                            <ul class="pagination justify-content-center" id="paginationControls"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
     </div>
 </div>
 
