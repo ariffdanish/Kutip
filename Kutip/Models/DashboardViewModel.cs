@@ -20,6 +20,12 @@ namespace Kutip.Models
         public int TotalTrucks => Trucks?.Count ?? 0;
         public int TrucksUnderMaintenance => Trucks?.Count(t => t.Status == TruckStatus.Maintenance) ?? 0;
         public int TrucksAssignedToday { get; set; }
+        public int MissedPickupsToday { get; set; }
+        public int IdleTrucksToday { get; set; }
+        public double CompletionRate { get; set; } // as a percentage
+        public int InactiveBins => Bins?.Count(b => b.Status == BinStatus.Inactive) ?? 0;
+
+
 
         // Dropdowns
         public List<string> AllCities { get; set; }

@@ -29,8 +29,31 @@ namespace Kutip.Controllers
              BinStatus? binStatusFilter,
              string truckNoFilter,
              TruckStatus? truckStatusFilter
-)
+        )
         {
+
+            // ✅ Get today's date and schedule day (Malaysia Time)
+            var malaysiaTime = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                TimeZoneInfo.FindSystemTimeZoneById("Singapore")
+            );
+
+            var todayDate = malaysiaTime.Date; // For UpdatedAt.Date
+            //var todayScheduleEnum = (ScheduleDay)malaysiaTime.DayOfWeek; // For ScheduledDay enum
+            var systemDayOfWeek = malaysiaTime.DayOfWeek;
+            ScheduleDay todayScheduleEnum = systemDayOfWeek switch
+            {
+                DayOfWeek.Sunday => ScheduleDay.Sunday,
+                DayOfWeek.Monday => ScheduleDay.Monday,
+                DayOfWeek.Tuesday => ScheduleDay.Tuesday,
+                DayOfWeek.Wednesday => ScheduleDay.Wednesday,
+                DayOfWeek.Thursday => ScheduleDay.Thursday,
+                DayOfWeek.Friday => ScheduleDay.Friday,
+                DayOfWeek.Saturday => ScheduleDay.Saturday,
+                _ => throw new Exception("Unknown day")
+            };
+
+
             var viewModel = new DashboardViewModel();
 
             // Build Bin Query
@@ -49,13 +72,48 @@ namespace Kutip.Controllers
             var trucks = trucksQuery.ToList(); // Materialize once
 
             //Get today truck assign
-            var today = DateTime.Today;
             viewModel.TrucksAssignedToday = _context.Schedules
-                .AsEnumerable()
-                .Where(s => s.ScheduledDay == (ScheduleDay)DateTime.Today.DayOfWeek)
+            .Where(s => s.ScheduledDay == todayScheduleEnum)
+            .Select(s => s.TruckId)
+            .Distinct()
+            .Count();
+
+
+            // Get today's date
+            viewModel.BinsScheduledToday = bins
+    .Select(bin => new
+    {
+        Bin = bin,
+        TodaysSchedule = bin.Schedules
+            .Where(s => s.UpdatedAt.Date == todayDate &&
+                        (s.Status == ScheduleStatus.Completed || s.Status == ScheduleStatus.Missed))
+            .OrderByDescending(s => s.UpdatedAt)
+            .FirstOrDefault()
+    })
+    .Where(x => x.TodaysSchedule != null)
+    .OrderByDescending(x => x.TodaysSchedule.UpdatedAt) // ✅ SORT by latest pickup time
+    .Select(x => x.Bin)
+    .ToList();
+
+            // Missed pickups today
+            viewModel.MissedPickupsToday = _context.Schedules
+                .Count(s => s.ScheduledDay == todayScheduleEnum && s.UpdatedAt.Date == todayDate && s.Status == ScheduleStatus.Missed);
+
+            // Completion rate
+            int completedToday = _context.Schedules.Count(s => s.ScheduledDay == todayScheduleEnum && s.UpdatedAt.Date == todayDate && s.Status == ScheduleStatus.Completed);
+            int totalHandledToday = completedToday + viewModel.MissedPickupsToday;
+            viewModel.CompletionRate = totalHandledToday > 0 ? (completedToday * 100.0 / totalHandledToday) : 0;
+
+            // Idle trucks
+            var workingTruckIds = _context.Schedules
+                .Where(s => s.ScheduledDay == todayScheduleEnum)
                 .Select(s => s.TruckId)
                 .Distinct()
-                .Count();
+                .ToList();
+
+            viewModel.IdleTrucksToday = _context.Trucks
+                .Count(t => !workingTruckIds.Contains(t.TruckId) && t.Status != TruckStatus.Maintenance);
+
 
             // Inject filtered lists into ViewModel
             viewModel.Bins = bins;
@@ -69,23 +127,6 @@ namespace Kutip.Controllers
                     .FirstOrDefault()
             );
             viewModel.ScheduleLookup = scheduleLookup;
-
-            // Get today's date
-            viewModel.BinsScheduledToday = bins
-                 .Select(bin => new
-                 {
-                     Bin = bin,
-                     TodaysSchedule = bin.Schedules
-                        .Where(s => s.UpdatedAt.Date == today.Date &&
-                                     (s.Status == ScheduleStatus.Completed ||
-                                      s.Status == ScheduleStatus.Missed))
-                        .OrderByDescending(s => s.UpdatedAt)
-                        .FirstOrDefault()
-                  })
-                  .Where(x => x.TodaysSchedule != null)
-                  .Select(x => x.Bin)
-                  .ToList();
-
 
             // Populate dropdown data
             viewModel.AllCities = _context.Bin.Select(b => b.City).Distinct().ToList();
@@ -179,7 +220,8 @@ namespace Kutip.Controllers
 
             return new ViewAsPdf("TruckReport", trucks.ToList())
             {
-                FileName = "TruckReport.pdf"
+                FileName = "TruckReport.pdf",
+                CustomSwitches = "--enable-local-file-access" // ✅ Enables local image rendering
             };
         }
 
@@ -218,7 +260,8 @@ namespace Kutip.Controllers
 
             return new ViewAsPdf("BinReport", bins.ToList())
             {
-                FileName = "BinReport.pdf"
+                FileName = "BinReport.pdf",
+                CustomSwitches = "--enable-local-file-access" // ✅ Enables local image rendering
             };
         }
 
@@ -231,10 +274,10 @@ namespace Kutip.Controllers
 
         ///Pickup report
         public async Task<IActionResult> PickupReportPreview(
-     DateTime? startDate,
-     DateTime? endDate,
-     string streetFilter = null,
-     string preview = "false")
+        DateTime? startDate,
+        DateTime? endDate,
+        string streetFilter = null,
+        string preview = "false")
         {
             var query = _context.Schedules
                 .Include(s => s.Bin)
@@ -288,7 +331,8 @@ namespace Kutip.Controllers
 
             return new ViewAsPdf("PickupReport", results)
             {
-                FileName = "PickupReport.pdf"
+                FileName = "PickupReport.pdf",
+                CustomSwitches = "--enable-local-file-access" // ✅ Enables local image rendering
             };
         }
 

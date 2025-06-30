@@ -5,17 +5,22 @@
 
     // Cast system DayOfWeek to your custom ScheduleDay enum
     var malaysiaTime = TimeZoneInfo.ConvertTimeFromUtc(
-    DateTime.UtcNow,
-    TimeZoneInfo.FindSystemTimeZoneById("Singapore")
+        DateTime.UtcNow,
+        TimeZoneInfo.FindSystemTimeZoneById("Singapore")
     );
-    var today = (Kutip.Models.ScheduleDay)malaysiaTime.DayOfWeek;
+
+    var systemDay = malaysiaTime.DayOfWeek;
+    int adjustedDay = ((int)systemDay + 6) % 7; // Shift Sunday (0) to 6, Monday (1) to 0, etc.
+
+    var today = (Kutip.Models.ScheduleDay)adjustedDay;
+
 
     var binsScheduledToday = Model.Bins
         .Where(b => b.Schedules != null &&
                     b.Schedules.Any(s => s.ScheduledDay == today))
         .ToList();
+
 }
-<p>Malaysia Time: @malaysiaTime</p>
 
 <style>
     .table-scroll-container {
@@ -80,6 +85,36 @@
         animation: pulse 1s ease-out 3;
     }
 
+    .card-stats.card-round {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card-stats.card-round:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .bubble-shadow-small {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+    }
+
 </style>
 
 <!-- jQuery -->
@@ -132,7 +167,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-icon">
-                                <div class="icon-big text-center icon-primary bubble-shadow-small">
+                                <div class="icon-big text-center icon-info bubble-shadow-small">
                                     <i class="fas fa-trash"></i>
                                 </div>
                             </div>
@@ -189,21 +224,100 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-icon">
-                                <div class="icon-big text-center icon-secondary bubble-shadow-small">
-                                    <i class="far fa-check-circle"></i>
+                                <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
                             </div>
                             <div class="col col-stats ms-3 ms-sm-0">
                                 <div class="numbers">
-                                    <p class="card-category">Trucks Today</p>
+                                    <p class="card-category">Working Trucks Today</p>
                                     <h4 class="card-title">@Model.TrucksAssignedToday</h4>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-danger bubble-shadow-small">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Missed Pickups Today</p>
+                                    <h4 class="card-title">@Model.MissedPickupsToday</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                    <i class="fas fa-truck-loading"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Idle Trucks Today</p>
+                                    <h4 class="card-title">@Model.IdleTrucksToday</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-success bubble-shadow-small">
+                                    <i class="fas fa-percent"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Completion Rate Today</p>
+                                    <h4 class="card-title">@Model.CompletionRate.ToString("F1")%</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-stats card-round card-hover">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-icon">
+                                <div class="icon-big text-center icon-danger bubble-shadow-small animate__animated animate__bounceIn">
+                                    <i class="fas fa-ban"></i>
+                                </div>
+                            </div>
+                            <div class="col col-stats ms-3 ms-sm-0">
+                                <div class="numbers">
+                                    <p class="card-category">Inactive Bins</p>
+                                    <h4 class="card-title">@Model.InactiveBins</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       </div>
+
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-round">
@@ -235,6 +349,7 @@
                                             <tr>
                                                 <th class="sortable-header" data-column="binno">Bin Number</th>
                                                 <th class="sortable-header" data-column="location">Location</th>
+                                                <th class="sortable-header" data-column="location">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -242,11 +357,39 @@
                                             {
                                                 foreach (var bin in binsScheduledToday)
                                                 {
+                                                    var scheduleToday = bin.Schedules
+                                                    .FirstOrDefault(s => s.ScheduledDay == today);
+
+                                                    string badgeClass = "badge bg-secondary";
+                                                    string statusText = "Unknown";
+
+                                                    if (scheduleToday != null)
+                                                    {
+                                                        switch (scheduleToday.Status)
+                                                        {
+                                                            case Kutip.Models.ScheduleStatus.Completed:
+                                                                badgeClass = "badge bg-success";
+                                                                statusText = "Completed";
+                                                                break;
+                                                            case Kutip.Models.ScheduleStatus.Missed:
+                                                                badgeClass = "badge bg-danger";
+                                                                statusText = "Missed";
+                                                                break;
+                                                            default:
+                                                                badgeClass = "badge bg-primary";
+                                                                statusText = "Pending";
+                                                                break;
+                                                        }
+                                                    }
+
                                                     <tr data-binno="@bin.BinNo"
                                                         data-lat="@bin.Latitude"
                                                         data-lng="@bin.Longitude">
                                                         <td>@bin.BinNo</td>
                                                         <td>@($"{bin.Street}, {bin.PostCode}, {bin.City}, {bin.State}")</td>
+                                                        <td>
+                                                            <span class="@badgeClass">@statusText</span>
+                                                        </td>
                                                     </tr>
                                                 }
                                             }
@@ -281,67 +424,65 @@
                 <div class="card-body">
                     <div class="card-head-row card-tools-still-right">
                         <div class="card-title">Trucks</div>
-                        <div class="card-tools">
-                            <div class="dropdown">
-                                <button class="btn btn-icon btn-clean me-0"
-                                        type="button"
-                                        id="dropdownMenuButton"
-                                        data-bs-toggle="dropdown"
-                                        aria-haspopup="true"
-                                        aria-expanded="false">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                                <div class="dropdown-menu"
-                                     aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
+                        <div class="card-list py-4" id="truck-list">
+                            @foreach (var truck in Model.Trucks)
+                            {
+                                <div class="item-list">
+                                    <div class="avatar">
+                                        <span class="avatar-title rounded-circle border border-white bg-primary">
+                                            @truck.TruckNo.Substring(0, 1)
+                                        </span>
+                                    </div>
+
+                                    <div class="info-user ms-3">
+                                        <div class="username">Number Plate : @truck.TruckNo</div>
+                                        <div class="status">Driver : @truck.DriverName</div>
+                                    </div>
+
+                                    @* ✅ Format the phone number correctly here *@
+                                    @{
+                                        var phone = truck.Phone?.Trim();
+                                        var whatsappNumber = !string.IsNullOrEmpty(phone) && phone.StartsWith("0")
+                                        ? "60" + phone.Substring(1)
+                                        : phone;
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(whatsappNumber))
+                                    {
+                                        <button class="btn btn-icon btn-link op-8 me-1"
+                                                onclick="openWhatsApp('@whatsappNumber', '@truck.TruckNo')">
+                                            <i class="far fa-envelope"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No WhatsApp</span>
+                                    }
+
+                                    <a href="@Url.Action("Index", "AdminUser")" class="btn btn-icon btn-link btn-danger op-8">
+                                        <i class="fas fa-ban"></i>
+                                    </a>
                                 </div>
-                            </div>
+                            }
+                     </div>
+                        <div class="pagination-controls text-center mt-3">
+                            <button id="prevPage" class="btn btn-outline-primary btn-sm me-2">Previous</button>
+                            <span id="pageInfo" class="me-2"></span>
+                            <button id="nextPage" class="btn btn-outline-primary btn-sm">Next</button>
                         </div>
-                    </div>
-                    <div class="card-list py-4">
-                        @foreach (var truck in Model.Trucks)
-                        {
-                            <div class="item-list">
-                                <div class="avatar">
-                                    <span class="avatar-title rounded-circle border border-white bg-primary">
-                                        @truck.TruckNo.Substring(0, 1)
-                                    </span>
-                                </div>
-                                <div class="info-user ms-3">
-                                    <div class="username">Number Plate : @truck.TruckNo</div>
-                                    <div class="status">Driver : @truck.DriverName</div>
-                                </div>
-                                <button class="btn btn-icon btn-link op-8 me-1">
-                                    <i class="far fa-envelope"></i>
-                                </button>
-                                <button class="btn btn-icon btn-link btn-danger op-8">
-                                    <i class="fas fa-ban"></i>
-                                </button>
-                            </div>
-                        }
-                    </div>
+
                 </div>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card card-round shadow">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Pickup History</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-link text-muted dropdown-toggle" type="button"
-                                id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                        </ul>
+                    <div class="card-header">
+                        <div class="d-flex justify-content-center w-100">
+                            <h5 class="card-title mb-0">Recent Pickup History</h5>
+                        </div>
                     </div>
-                </div>
+
 
                 <!-- Scrollable Table Container -->
                 <div class="table-responsive">
@@ -425,6 +566,7 @@
     </div>
     </div>
 </div>
+
 
 @*Template*@
 
@@ -530,10 +672,6 @@
                                 });
                             </script>
 
-                           
-
-
-
 
     @* pagination recently pickup *@
     <script>
@@ -599,6 +737,58 @@
                 // Initialize pagination on load
                 window.addEventListener("load", paginateTable);
             </script>
+
+
+            @*Chat with driver*@
+
+    <script>
+        function openWhatsApp(phoneNumber, truckNo) {
+            if (!phoneNumber) {
+                alert("No phone number available.");
+                return;
+            }
+
+            const message = encodeURIComponent(`Hi, this is regarding your schedule for Truck No: ${truckNo}.`);
+            const url = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+            console.log("Opening:", url); // Optional debug
+            window.open(url, '_blank');
+        }
+    </script>
+
+    <script>
+        const itemsPerPage = 5;
+        let currentPage = 1;
+
+        function showPage(page) {
+            const items = document.querySelectorAll("#truck-list .item-list");
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            // Clamp page number
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            currentPage = page;
+
+            // Show/hide items
+            items.forEach((item, index) => {
+                item.style.display = (index >= (page - 1) * itemsPerPage && index < page * itemsPerPage) ? "flex" : "none";
+            });
+
+            // Update page info
+            document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
+
+            // Enable/disable buttons
+            document.getElementById("prevPage").disabled = (currentPage === 1);
+            document.getElementById("nextPage").disabled = (currentPage === totalPages);
+        }
+
+        document.getElementById("prevPage").addEventListener("click", () => showPage(currentPage - 1));
+        document.getElementById("nextPage").addEventListener("click", () => showPage(currentPage + 1));
+
+        // Initial render
+        showPage(1);
+    </script>
+
 }
 
 
