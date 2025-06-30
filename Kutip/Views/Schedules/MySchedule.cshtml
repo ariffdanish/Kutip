@@ -42,14 +42,17 @@
                                 {
                                     foreach (var schedule in groupedByDay[day])
                                     {
-                                        <div class="mb-2 border rounded p-2 bg-light">
-                                            <div><strong>Bin:</strong> @schedule.Bin?.BinNo</div>
-                                            <div><strong>Street:</strong> @schedule.Bin?.Street</div>
-                                            <div>
-                                                <strong>Status:</strong>
-                                                <span class="badge bg-secondary">@schedule.Status</span>
-                                            </div>
+                                    <div class="mb-2 border rounded p-2 bg-light">
+                                        <div><strong>Bin:</strong> @schedule.Bin?.BinNo</div>
+                                        <div><strong>Street:</strong> @schedule.Bin?.Street</div>
+                                        <div>
+                                            <strong>Status:</strong>
+                                            <span class="badge @(schedule.Status == ScheduleStatus.Completed ? "bg-success" : "bg-secondary")">
+                                                @schedule.Status
+                                            </span>
                                         </div>
+                                    </div>
+
                                     }
                                 }
                                 else
