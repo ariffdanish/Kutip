@@ -44,10 +44,12 @@ namespace Kutip.Models
         public double Longitude { get; set; }
         [NotMapped]
         public string Street { get; set; }
+        
 
         // Navigation Properties
         public virtual Bin Bin { get; set; }
         public virtual Truck Truck { get; set; }
+        public string Issues { get; set; }
     }
 
     public enum ScheduleStatus

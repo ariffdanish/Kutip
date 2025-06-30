@@ -68,15 +68,11 @@
                                                 </button>
 
                                                 <!-- ISSUE Button -->
-                                                <form method="post" asp-controller="Schedules" asp-action="ReportIssue" class="d-inline ms-1">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="scheduleId" value="@schedule.ScheduleId" />
-                                                    <input type="hidden" name="returnUrl" value="@(Uri.EscapeDataString($"{Context.Request.Path}{Context.Request.QueryString}"))" />
-                                                    <button type="button" class="btn btn-danger btn-sm" title="Report Issue"
-                                                            onclick="confirmIssue(this.form)">
-                                                        <i class="fas fa-exclamation-triangle"></i> ISSUE
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                        onclick="issue('@Url.Action("Issue", "Schedules")', @schedule.ScheduleId)">
+                                                    ISSUE
+                                                </button>
+       
 
                                                 <!-- Anti-Forgery Token for JavaScript Usage -->
                                                 <form>

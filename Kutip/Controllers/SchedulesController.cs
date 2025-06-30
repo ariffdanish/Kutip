@@ -59,7 +59,23 @@ namespace Kutip.Controllers
             // Redirect back to the same page
             return RedirectToAction("MyBin", "Bins");
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Issue(int scheduleId, string reason, string returnUrl)
+        {
+            var schedule = await _context.Schedules
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
 
+            if (schedule != null)
+            {
+                schedule.Status = ScheduleStatus.Missed;
+                schedule.Issues = reason; // Save the reason
+                _context.Schedules.Update(schedule);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("MyBin", "Bins");
+        }
         [Authorize(Roles = "TruckDriver")]
         public async Task<IActionResult> MySchedule()
         {
