@@ -120,7 +120,6 @@ namespace Kutip.Controllers
         {
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo");
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo");
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)));
             ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)));
             return View(new Schedule());
         }
@@ -134,11 +133,10 @@ namespace Kutip.Controllers
             {
                 ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
                 ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
-                ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
                 ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
                 return View(schedule);
             }
-
+            schedule.Status = ScheduleStatus.Scheduled;
             schedule.CreatedAt = DateTimeOffset.Now;
             schedule.UpdatedAt = DateTimeOffset.Now;
 
@@ -157,7 +155,6 @@ namespace Kutip.Controllers
 
             ViewBag.BinId = new SelectList(_context.Bin.ToList(), "BinId", "BinNo", schedule.BinId);
             ViewBag.TruckId = new SelectList(_context.Trucks.ToList(), "TruckId", "TruckNo", schedule.TruckId);
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
             ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
             return View(schedule);
         }
@@ -173,7 +170,6 @@ namespace Kutip.Controllers
             {
                 ViewBag.BinId = new SelectList(_context.Bin, "BinId", "BinNo", schedule.BinId);
                 ViewBag.TruckId = new SelectList(_context.Trucks, "TruckId", "TruckNo", schedule.TruckId);
-                ViewBag.Status = new SelectList(Enum.GetValues(typeof(ScheduleStatus)), schedule.Status);
                 ViewBag.ScheduledDay = new SelectList(Enum.GetValues(typeof(ScheduleDay)), schedule.ScheduledDay);
                 return View(schedule);
             }
@@ -558,7 +554,10 @@ namespace Kutip.Controllers
             }
 
             // Step 6: Find today's schedule for this bin and truck
-            var todayDay = (ScheduleDay)Enum.Parse(typeof(ScheduleDay), DateTime.Now.DayOfWeek.ToString());
+            var dotnetDay = DateTime.Now.DayOfWeek;
+            int adjustedDay = ((int)dotnetDay + 6) % 7; // Shift Sunday from 0 → 6
+            var todayDay = (ScheduleDay)adjustedDay;
+
 
             var schedule = await _context.Schedules
                 .FirstOrDefaultAsync(s =>
